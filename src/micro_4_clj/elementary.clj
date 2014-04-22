@@ -160,3 +160,20 @@
 (= 15 (reduce + [1 2 3 4 5]))
 (=  0 (reduce + []))
 (=  6 (reduce + 1 [2 3]))
+
+"A nil key"
+"Write a function which, given a key and map, returns true if the map contains an entry with that key and its value is nil."
+(defn x [key map]
+  (and (contains? map key)
+       (nil? (get map key))))
+(assert (true?  (x :a {:a nil :b 2})))
+(assert (false? (x :b {:a nil :b 2})))
+(assert (false? (x :c {:a nil :b 2})))
+
+"Subset and Superset"
+"Set A is a subset of set B, or equivalently B is a superset of A, if A is \"contained\" inside B. A and B may coincide."
+(def x #{1 2})
+(clojure.set/superset? x #{2})
+(clojure.set/subset? #{1} x)
+(clojure.set/superset? x #{1 2})
+(clojure.set/subset? #{1 2} x)
