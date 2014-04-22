@@ -100,10 +100,50 @@
 (assert (= x (let [x 3, y 10] (- y x))))
 (assert (= x (let [x 21] (let [y 3] (/ x y)))))
 
-"Duplicate a Sequence"
-"Write a function which duplicates each element of a sequence."
-(def x #(interleave % %))
-(assert (= (x [1 2 3]) '(1 1 2 2 3 3)))
-(assert (= (x [:a :a :b :b]) '(:a :a :a :a :b :b :b :b)))
-(assert (= (x [[1 2] [3 4]]) '([1 2] [1 2] [3 4] [3 4])))
-(assert (= (x [[1 2] [3 4]]) '([1 2] [1 2] [3 4] [3 4])))
+"Rearranging Code: ->"
+"The -> macro threads an expression x through a variable number of forms. First, x is inserted as the second item in the first form, making a list of it if it is not a list already. Then the first form is inserted as the second item in the second form, making a list of that form if necessary. This process continues for all the forms. Using -> can sometimes make your code more readable."
+(assert (= (last (sort (rest (reverse [2 5 4 1 3 6]))))
+           (-> [2 5 4 1 3 6] (reverse) (rest) (sort) (last))
+           5))
+
+"Rearranging Code: ->>"
+"The ->> macro threads an expression x through a variable number of forms. First, x is inserted as the last item in the first form, making a list of it if it is not a list already. Then the first form is inserted as the last item in the second form, making a list of that form if necessary. This process continues for all the forms. Using ->> can sometimes make your code more readable."
+(assert (= (reduce + (map inc (take 3 (drop 2 [2 5 4 1 3 6]))))
+           (->> [2 5 4 1 3 6] (drop 2) (take 3) (map inc) (reduce +))
+           11))
+
+"For the win"
+"Clojure's for macro is a tremendously versatile mechanism for producing a sequence based on some other sequence (s). It can take some time to understand how to use it properly, but that investment will be paid back with clear, concise sequence-wrangling later. With that in mind, read over these for expressions and try to see how each of them produces the same result."
+(def val [1 5 9 13 17 21 25 29 33 37])
+(assert (= val (for [x (range 40)
+                     :when (= 1 (rem x 4))]
+                 x)))
+(assert (= val (for [x (iterate #(+ 4 %) 0)
+                     :let [z (inc x)]
+                     :while (< z 40)]
+                 z)))
+(assert (= val (for [[x y] (partition 2 (range 20))]
+                 (+ x y))))
+
+"Logical falsity and truth"
+"In Clojure, only nil and false represent the values of logical falsity in conditional tests - anything else is logical truth."
+(def x 1)
+(= x (if-not false 1 0))
+(= x (if-not nil 1 0))
+(= x (if true 1 0))
+(= x (if [] 1 0))
+(= x (if [0] 1 0))
+(= x (if 0 1 0))
+(= x (if 1 1 0))
+
+"Map Defaults"
+"When retrieving values from a map, you can specify default values in case the key is not found:"
+"(= 2 (:foo {:bar 0, :baz 1} 2))"
+"However, what if you want the map itself to contain the default values? Write a function which takes a default value and a sequence of keys and constructs a map."
+(def x
+  (fn [val keys]
+    (reduce merge
+            (map (fn [k] {k val}) keys))))
+(assert (= (x 0 [:a :b :c]) {:a 0 :b 0 :c 0}))
+(assert (= (x "x" [1 2 3]) {1 "x" 2 "x" 3 "x"}))
+(assert (= (x [:a :b] [:foo :bar]) {:foo [:a :b] :bar [:a :b]}))
