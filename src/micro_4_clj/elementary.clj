@@ -24,7 +24,6 @@
 "Vectors can be constructed several ways. You can compare them with lists."
 (= [:a :b :c] (list :a :b :c) (vec '(:a :b :c)) (vector :a :b :c))
 
-
 "Vectors: conj"
 "When operating on a Vector, the conj function will return a new vector with one or more items \"added\" to the end."
 (def x [1 2 3 4])
@@ -177,3 +176,23 @@
 (clojure.set/subset? #{1} x)
 (clojure.set/superset? x #{1 2})
 (clojure.set/subset? #{1 2} x)
+
+"Recurring Theme"
+"Clojure only has one non-stack-consuming looping construct: recur. Either a function or a loop can be used as the recursion point. Either way, recur rebinds the bindings of the recursion point to the values it is passed. Recur must be called from the tail-position, and calling it elsewhere will result in an error."
+(def x [7 6 5 4 3])
+(assert (= x
+           (loop [x 5
+                  result []]
+             (if (> x 0)
+               (recur (dec x) (conj result (+ 2 x)))
+               result))))
+
+"Simple Recursion"
+"A recursive function is a function which calls itself. This is one of the fundamental techniques used in functional programming."
+(def x [5 4 3 2 1])
+(assert (= x ((fn foo [x] (when (> x 0) (conj (foo (dec x)) x))) 5)))
+
+"Regular Expressions"
+"Regex patterns are supported with a special reader macro."
+(def x "ABC")
+(assert (= x (apply str (re-seq #"[A-Z]+" "bA1B3Ce "))))
