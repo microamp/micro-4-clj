@@ -60,14 +60,12 @@
 
 "Reverse a Sequence"
 "Write a function which reverses a sequence."
-(defn except-last [coll]
-  (take (- (count coll) 1) coll))
 (def my-reverse
   (fn [coll]
     (loop [current coll reversed []]
       (if (empty? current)
         reversed
-        (recur (except-last current)
+        (recur (butlast current)
                (conj reversed (last current)))))))
 (assert (= (my-reverse [1 2 3 4 5]) [5 4 3 2 1]))
 (assert (= (my-reverse (sorted-set 5 7 2 7)) '(7 5 2)))
@@ -110,3 +108,89 @@ Hint: \"racecar\" does not equal '(\\r \\a \\c \\e \\c \\a \\r)"
 (assert (= (caps-only "HeLlO, WoRlD!") "HLOWRD"))
 (assert (empty? (caps-only "nothing")))
 (assert (= (caps-only "$#A(*&987Zf") "AZ"))
+
+"Intro to some"
+"The some function takes a predicate function and a collection. It returns the first logical true value of (pre
+dicate x) where x is an item in the collection."
+(def x 6)
+(assert (= x (some #{2 7 6} [5 6 7 8])))
+(assert (= x (some #(when (even? %) %) [5 6 7 8])))
+
+"Implement range"
+"Write a function which creates a list of all integers in a given range."
+(def my-range
+  (fn [start end]
+    (loop [current start coll []]
+      (if (= current end)
+        coll
+        (recur (inc current) (conj coll current))))))
+(= (my-range 1 4) '(1 2 3))
+(= (my-range -2 2) '(-2 -1 0 1))
+(= (my-range 5 8) '(5 6 7))
+
+"Factorial Fun"
+"Write a function which calculates factorials."
+(defn factorial [n]
+  (reduce * (range 1 (inc n))))
+(assert (= (factorial 1) 1))
+(assert (= (factorial 3) 6))
+(assert (= (factorial 5) 120))
+(assert (= (factorial 8) 40320))
+
+"Interleave Two Seqs"
+"Write a function which takes two sequences and returns the first item from each, then the second item from each, then the third, etc."
+(defn my-interleave [coll1, coll2]
+  (let [len (min (count coll1) (count coll2))]
+    (reduce concat (map vector (take len coll1) (take len coll2)))))
+(assert (= (my-interleave [1 2 3] [:a :b :c]) '(1 :a 2 :b 3 :c)))
+(assert (= (my-interleave [1 2] [3 4 5 6]) '(1 3 2 4)))
+(assert (= (my-interleave [1 2 3 4] [5]) [1 5]))
+(assert (= (my-interleave [30 20] [25 15]) [30 25 20 15]))
+
+"Compress a Sequence"
+"Write a function which removes consecutive duplicates from a sequence."
+(defn compress [coll]
+  (map second
+       (filter (fn [[index item]] (not= item (get coll (dec index))))
+               (map vector (range) coll))))
+(assert (= (apply str (compress "Leeeeeerrroyyy")) "Leroy"))
+(assert (= (compress [1 1 2 3 3 2 2 3]) '(1 2 3 2 3)))
+(assert (= (compress [[1 2] [1 2] [3 4] [1 2]]) '([1 2] [3 4] [1 2])))
+
+"Contain Yourself"
+"The contains? function checks if a KEY is present in a given collection. This often leads beginner clojurians to use it incorrectly with numerically indexed collections like vectors and lists."
+(def x 4)
+(assert (contains? #{4 5 6} x))
+(assert (contains? [1 1 1 1 1] x))
+(assert (contains? {4 :a 2 :b} x))
+(not (contains? '(1 2 4) x)) ; throws IllegalArgumentException
+                             ; contains? not supported on type:
+                             ; clojure.lang.PersistentList
+                             ; clojure.lang.RT.contains (RT.java:724)
+                             ; in Clojure 1.5.1
+
+"Intro to Iterate"
+"The iterate function can be used to produce an infinite lazy sequence."
+(def x [1 4 7 10 13])
+(= x (take 5 (iterate #(+ 3 %) 1)))
+
+"Replicate a Sequence"
+"Write a function which replicates each element of a sequence a variable number of times."
+(defn replicate [coll n]
+  (if (> n 1)
+    (apply interleave (take n (repeat coll)))
+    coll))
+(assert (= (replicate [1 2 3] 2) '(1 1 2 2 3 3)))
+(assert (= (replicate [:a :b] 4) '(:a :a :a :a :b :b :b :b)))
+(assert (= (replicate [4 5 6] 1) '(4 5 6)))
+(assert (= (replicate [[1 2] [3 4]] 2) '([1 2] [1 2] [3 4] [3 4])))
+(assert (= (replicate [44 33] 2) [44 44 33 33]))
+
+"Interpose a Seq"
+"Write a function which separates the items of a sequence by an arbitrary value."
+(defn my-interpose [x coll]
+  (butlast (reduce concat
+                   (map (fn [item] [item x]) coll))))
+(assert (= (my-interpose 0 [1 2 3]) [1 0 2 0 3]))
+(assert (= (apply str (my-interpose ", " ["one" "two" "three"])) "one, two, three"))
+(assert (= (my-interpose :z [:a :b :c :d]) [:a :z :b :z :c :z :d]))
