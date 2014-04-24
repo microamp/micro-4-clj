@@ -1,6 +1,6 @@
 "Last Element:"
 "Write a function which returns the last element in a sequence."
-(def x last)
+(def x #(-> % reverse first))
 (assert (= (x [1 2 3 4 5]) 5))
 (assert (= (x '(5 4 3)) 3))
 (assert (= (x ["b" "c" "d"]) "d"))
