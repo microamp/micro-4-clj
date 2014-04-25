@@ -60,13 +60,12 @@
 
 "Reverse a Sequence"
 "Write a function which reverses a sequence."
-(def my-reverse
-  (fn [coll]
+(defn my-reverse [coll]
     (loop [current coll reversed []]
       (if (empty? current)
         reversed
         (recur (butlast current)
-               (conj reversed (last current)))))))
+               (conj reversed (last current))))))
 (assert (= (my-reverse [1 2 3 4 5]) [5 4 3 2 1]))
 (assert (= (my-reverse (sorted-set 5 7 2 7)) '(7 5 2)))
 (assert (= (my-reverse [[1 2] [3 4] [5 6]]) [[5 6] [3 4] [1 2]]))
@@ -118,15 +117,14 @@ dicate x) where x is an item in the collection."
 
 "Implement range"
 "Write a function which creates a list of all integers in a given range."
-(def my-range
-  (fn [start end]
+(defn my-range [start end]
     (loop [current start coll []]
       (if (= current end)
         coll
-        (recur (inc current) (conj coll current))))))
-(= (my-range 1 4) '(1 2 3))
-(= (my-range -2 2) '(-2 -1 0 1))
-(= (my-range 5 8) '(5 6 7))
+        (recur (inc current) (conj coll current)))))
+(assert (= (my-range 1 4) '(1 2 3)))
+(assert (= (my-range -2 2) '(-2 -1 0 1)))
+(assert (= (my-range 5 8) '(5 6 7)))
 
 "Factorial Fun"
 "Write a function which calculates factorials."
@@ -197,8 +195,7 @@ dicate x) where x is an item in the collection."
 
 "Pack a Sequence"
 "Write a function which packs consecutive duplicates into sub-lists."
-(def pack
-  (fn [coll]
+(defn pack [coll]
     (loop [left (rest coll) result [] current [(first coll)]]
       (if (empty? left)
         (if (empty? result) result (conj result current))
@@ -206,7 +203,7 @@ dicate x) where x is an item in the collection."
           (let [consec? (= current-item (last current))]
             (if consec?
               (recur (rest left) result (conj current current-item))
-              (recur (rest left) (conj result current) [current-item]))))))))
+              (recur (rest left) (conj result current) [current-item])))))))
 (assert (= (pack [1 1 2 1 1 1 3 3]) '((1 1) (2) (1 1 1) (3 3))))
 (assert (= (pack [:a :a :b :b :c]) '((:a :a) (:b :b) (:c))))
 (assert (= (pack [[1 2] [1 2] [3 4]]) '(([1 2] [1 2]) ([3 4]))))
@@ -258,12 +255,11 @@ dicate x) where x is an item in the collection."
 
 "Greatest Common Divisor"
 "Given two integers, write a function which returns the greatest common divisor."
-(def gcd
-  (fn [x y]
+(defn gcd [x y]
     (loop [div (min x y)]
       (if (and (zero? (mod x div)) (zero? (mod y div)))
         div
-        (recur (dec div))))))
+        (recur (dec div)))))
 (assert (= (gcd 2 4) 2))
 (assert (= (gcd 10 5) 5))
 (assert (= (gcd 5 7) 1))
@@ -300,3 +296,57 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
            ((simple-closure 8) 2)))
 (assert (= [1 8 27 64] (map (simple-closure 3) [1 2 3 4])))
 (assert (= [1 2 4 8 16] (map #((simple-closure %) 2) [0 1 2 3 4])))
+
+"Product Digits"
+"Write a function which multiplies two numbers and returns the result as a sequence of its digits."
+(defn prod-digits [a b]
+  (map (fn [[x]] (-> x str Integer/parseInt))
+       (partition 1 (str (* a b)))))
+(assert (= (prod-digits 1 1) [1]))
+(assert (= (prod-digits 99 9) [8 9 1]))
+(assert (= (prod-digits 999 99) [9 8 9 0 1]))
+
+"Cartesian Product"
+"Write a function which calculates the Cartesian product of two sets."
+(defn cartesian [coll1 coll2]
+  (set (for [item1 coll1 item2 coll2] [item1 item2])))
+(= (cartesian #{"ace" "king" "queen"} #{"♠" "♥" "♦" "♣"})
+   #{["ace"   "♠"] ["ace"   "♥"] ["ace"   "♦"] ["ace"   "♣"]
+     ["king"  "♠"] ["king"  "♥"] ["king"  "♦"] ["king"  "♣"]
+     ["queen" "♠"] ["queen" "♥"] ["queen" "♦"] ["queen" "♣"]})
+(= (cartesian #{1 2 3} #{4 5})
+   #{[1 4] [2 4] [3 4] [1 5] [2 5] [3 5]})
+(= 300 (count (cartesian (into #{} (range 10))
+                         (into #{} (range 30)))))
+
+"Group a Sequence"
+"Given a function f and a sequence s, write a function which returns a map. The keys should be the values of f applied to each item in s. The value at each key should be a vector of corresponding items in the order they appear in s."
+(defn my-group-by [f coll]
+  (loop [left coll result {}]
+    (if (empty? left)
+      result
+      (let [k (f (first left)) v (first left)]
+        (recur (rest left)
+               (assoc result k (conj (get result k []) v)))))))
+(assert (= (my-group-by #(> % 5) [1 3 6 8]) {false [1 3], true [6 8]}))
+(assert (= (my-group-by #(apply / %) [[1 2] [2 4] [4 6] [3 6]])
+           {1/2 [[1 2] [2 4] [3 6]], 2/3 [[4 6]]}))
+(assert (= (my-group-by count [[1] [1 2] [3] [1 2 3] [2 3]])
+           {1 [[1] [3]], 2 [[1 2] [2 3]], 3 [[1 2 3]]}))
+
+"Read a binary number"
+"Convert a binary number, provided in the form of a string, to its numerical value."
+(defn bin-read [s]
+  (int
+   (reduce +
+           (let [len (count s)]
+             (conj (map (fn [[i v]] (if (= v \0) 0 (. Math pow 2 (- len i))))
+                        (map vector (iterate inc 1) (butlast s)))
+                   (if (= (last s) \0) 0 1))))))
+(assert (= 0     (bin-read "0")))
+(assert (= 7     (bin-read "111")))
+(assert (= 8     (bin-read "1000")))
+(assert (= 9     (bin-read "1001")))
+(assert (= 255   (bin-read "11111111")))
+(assert (= 1365  (bin-read "10101010101")))
+(assert (= 65535 (bin-read "1111111111111111")))
