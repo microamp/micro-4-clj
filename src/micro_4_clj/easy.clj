@@ -1,11 +1,11 @@
-"Last Element:"
+"Last Element"
 "Write a function which returns the last element in a sequence."
 (def x #(-> % reverse first))
 (assert (= (x [1 2 3 4 5]) 5))
 (assert (= (x '(5 4 3)) 3))
 (assert (= (x ["b" "c" "d"]) "d"))
 
-"Penultimate Element:"
+"Penultimate Element"
 "Write a function which returns the second to last element from a sequence."
 (def x #(-> % reverse second))
 (assert (= (x (list 1 2 3 4 5)) 4))
@@ -194,3 +194,109 @@ dicate x) where x is an item in the collection."
 (assert (= (my-interpose 0 [1 2 3]) [1 0 2 0 3]))
 (assert (= (apply str (my-interpose ", " ["one" "two" "three"])) "one, two, three"))
 (assert (= (my-interpose :z [:a :b :c :d]) [:a :z :b :z :c :z :d]))
+
+"Pack a Sequence"
+"Write a function which packs consecutive duplicates into sub-lists."
+(def pack
+  (fn [coll]
+    (loop [left (rest coll) result [] current [(first coll)]]
+      (if (empty? left)
+        (if (empty? result) result (conj result current))
+        (let [current-item (first left)]
+          (let [consec? (= current-item (last current))]
+            (if consec?
+              (recur (rest left) result (conj current current-item))
+              (recur (rest left) (conj result current) [current-item]))))))))
+(assert (= (pack [1 1 2 1 1 1 3 3]) '((1 1) (2) (1 1 1) (3 3))))
+(assert (= (pack [:a :a :b :b :c]) '((:a :a) (:b :b) (:c))))
+(assert (= (pack [[1 2] [1 2] [3 4]]) '(([1 2] [1 2]) ([3 4]))))
+
+"Drop Every Nth Item"
+"Write a function which drops every Nth item from a sequence."
+(defn drop-every-nth [coll n]
+  (map second
+       (filter (fn [[idx val]] (not (zero? (mod (inc idx) n))))
+               (map vector (range) coll))))
+(assert (= (drop-every-nth [1 2 3 4 5 6 7 8] 3) [1 2 4 5 7 8]))
+(assert (= (drop-every-nth [:a :b :c :d :e :f] 2) [:a :c :e]))
+(assert (= (drop-every-nth [1 2 3 4 5 6] 4) [1 2 3 5 6]))
+
+"Intro to Destructuring"
+"Let bindings and function parameter lists support destructuring."
+(= [2 4] (let [[a b c d e f g] (range)] [c e]))
+
+"Split a sequence"
+"Write a function which will split a sequence into two parts."
+(defn my-split [n coll]
+  [(subvec coll 0 n) (subvec coll n (count coll))])
+(assert (= (my-split 3 [1 2 3 4 5 6]) [[1 2 3] [4 5 6]]))
+(assert (= (my-split 1 [:a :b :c :d]) [[:a] [:b :c :d]]))
+(assert (= (my-split 2 [[1 2] [3 4] [5 6]]) [[[1 2] [3 4]] [[5 6]]]))
+
+"Advanced Destructuring"
+"Here is an example of some more sophisticated destructuring."
+(assert (= [1 2 [3 4 5] [1 2 3 4 5]] (let [[a b & c :as d] [1 2 3 4 5]] [a b c d])))
+
+"A Half-Truth"
+"Write a function which takes a variable number of booleans. Your function should return true if some of the parameters are true, but not all of the parameters are true. Otherwise your function should return false."
+(defn half-truth [& bools]
+  (and (boolean (some identity bools)) (not-every? identity bools)))
+(assert (= false (half-truth false false)))
+(assert (= true (half-truth true false)))
+(assert (= false (half-truth true)))
+(assert (= true (half-truth false true false)))
+(assert (= false (half-truth true true true)))
+(assert (= true (half-truth true true true false)))
+
+"Map Construction"
+"Write a function which takes a vector of keys and a vector of values and constructs a map from them."
+(defn make-hash-map [keys values]
+  (apply hash-map (interleave keys values)))
+(assert (= (make-hash-map [:a :b :c] [1 2 3]) {:a 1, :b 2, :c 3}))
+(assert (= (make-hash-map [1 2 3 4] ["one" "two" "three"]) {1 "one", 2 "two", 3 "three"}))
+(assert (= (make-hash-map [:foo :bar] ["foo" "bar" "baz"]) {:foo "foo", :bar "bar"}))
+
+"Greatest Common Divisor"
+"Given two integers, write a function which returns the greatest common divisor."
+(def gcd
+  (fn [x y]
+    (loop [div (min x y)]
+      (if (and (zero? (mod x div)) (zero? (mod y div)))
+        div
+        (recur (dec div))))))
+(assert (= (gcd 2 4) 2))
+(assert (= (gcd 10 5) 5))
+(assert (= (gcd 5 7) 1))
+(assert (= (gcd 1023 858) 33))
+
+"Set Intersection"
+"Write a function which returns the intersection of two sets. The intersection is the sub-set of items that each set has in common."
+(defn my-intersection [x y]
+  (set (filter #(contains? y %) x)))
+(assert (= (my-intersection #{0 1 2 3} #{2 3 4 5}) #{2 3}))
+(assert (= (my-intersection #{0 1 2} #{3 4 5}) #{}))
+(assert (= (my-intersection #{:a :b :c :d} #{:c :e :a :f :d}) #{:a :c :d}))
+
+"Re-implement Iterate"
+"Given a side-effect free function f and an initial value x write a function which returns an infinite lazy sequence of x, (f x), (f (f x)), (f (f (f x))), etc."
+(defn my-iterate [f x]
+  (map (fn [i] (reduce (fn [v f] (f v))
+                      x
+                      (repeat i f)))
+       (range)))
+(assert (= (take 5 (my-iterate #(* 2 %) 1)) [1 2 4 8 16]))
+(assert (= (take 100 (my-iterate inc 0)) (take 100 (range))))
+(assert (= (take 9 (my-iterate #(inc (mod % 3)) 1)) (take 9 (cycle [1 2 3]))))
+
+"Simple closures"
+"Lexical scope and first-class functions are two of the most basic building blocks of a functional language like Clojure. When you combine the two together, you get something very powerful called lexical closures. With these, you can exercise a great deal of control over the lifetime of your local bindings, saving their values for use later, long after the code you're running now has finished.
+
+It can be hard to follow in the abstract, so let's build a simple closure. Given a positive integer n, return a function (f x) which computes x^n. Observe that the effect of this is to preserve the value of n for use outside the scope in which it is defined."
+(defn simple-closure [n]
+  (fn [x]
+    (int (. Math pow x n))))
+(assert (= 256
+           ((simple-closure 2) 16),
+           ((simple-closure 8) 2)))
+(assert (= [1 8 27 64] (map (simple-closure 3) [1 2 3 4])))
+(assert (= [1 2 4 8 16] (map #((simple-closure %) 2) [0 1 2 3 4])))
