@@ -61,11 +61,11 @@
 "Reverse a Sequence"
 "Write a function which reverses a sequence."
 (defn my-reverse [coll]
-    (loop [current coll reversed []]
-      (if (empty? current)
-        reversed
-        (recur (butlast current)
-               (conj reversed (last current))))))
+  (loop [current coll reversed []]
+    (if (empty? current)
+      reversed
+      (recur (butlast current)
+             (conj reversed (last current))))))
 (assert (= (my-reverse [1 2 3 4 5]) [5 4 3 2 1]))
 (assert (= (my-reverse (sorted-set 5 7 2 7)) '(7 5 2)))
 (assert (= (my-reverse [[1 2] [3 4] [5 6]]) [[5 6] [3 4] [1 2]]))
@@ -118,10 +118,10 @@ dicate x) where x is an item in the collection."
 "Implement range"
 "Write a function which creates a list of all integers in a given range."
 (defn my-range [start end]
-    (loop [current start coll []]
-      (if (= current end)
-        coll
-        (recur (inc current) (conj coll current)))))
+  (loop [current start coll []]
+    (if (= current end)
+      coll
+      (recur (inc current) (conj coll current)))))
 (assert (= (my-range 1 4) '(1 2 3)))
 (assert (= (my-range -2 2) '(-2 -1 0 1)))
 (assert (= (my-range 5 8) '(5 6 7)))
@@ -196,14 +196,14 @@ dicate x) where x is an item in the collection."
 "Pack a Sequence"
 "Write a function which packs consecutive duplicates into sub-lists."
 (defn pack [coll]
-    (loop [left (rest coll) result [] current [(first coll)]]
-      (if (empty? left)
-        (if (empty? result) result (conj result current))
-        (let [current-item (first left)]
-          (let [consec? (= current-item (last current))]
-            (if consec?
-              (recur (rest left) result (conj current current-item))
-              (recur (rest left) (conj result current) [current-item])))))))
+  (loop [left coll result []]
+    (if (empty? left)
+      result
+      (recur (rest left)
+             (let [current (first left) previous (first (last result))]
+               (if (= current previous)
+                 (conj (vec (butlast result)) (conj (last result) current))
+                 (conj result [current])))))))
 (assert (= (pack [1 1 2 1 1 1 3 3]) '((1 1) (2) (1 1 1) (3 3))))
 (assert (= (pack [:a :a :b :b :c]) '((:a :a) (:b :b) (:c))))
 (assert (= (pack [[1 2] [1 2] [3 4]]) '(([1 2] [1 2]) ([3 4]))))
