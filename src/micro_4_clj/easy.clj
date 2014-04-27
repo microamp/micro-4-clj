@@ -310,14 +310,14 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
 "Write a function which calculates the Cartesian product of two sets."
 (defn cartesian [coll1 coll2]
   (set (for [item1 coll1 item2 coll2] [item1 item2])))
-(= (cartesian #{"ace" "king" "queen"} #{"♠" "♥" "♦" "♣"})
-   #{["ace"   "♠"] ["ace"   "♥"] ["ace"   "♦"] ["ace"   "♣"]
-     ["king"  "♠"] ["king"  "♥"] ["king"  "♦"] ["king"  "♣"]
-     ["queen" "♠"] ["queen" "♥"] ["queen" "♦"] ["queen" "♣"]})
-(= (cartesian #{1 2 3} #{4 5})
-   #{[1 4] [2 4] [3 4] [1 5] [2 5] [3 5]})
-(= 300 (count (cartesian (into #{} (range 10))
-                         (into #{} (range 30)))))
+(assert (= (cartesian #{"ace" "king" "queen"} #{"♠" "♥" "♦" "♣"})
+           #{["ace"   "♠"] ["ace"   "♥"] ["ace"   "♦"] ["ace"   "♣"]
+             ["king"  "♠"] ["king"  "♥"] ["king"  "♦"] ["king"  "♣"]
+             ["queen" "♠"] ["queen" "♥"] ["queen" "♦"] ["queen" "♣"]}))
+(assert (= (cartesian #{1 2 3} #{4 5})
+            #{[1 4] [2 4] [3 4] [1 5] [2 5] [3 5]}))
+(assert (= 300 (count (cartesian (into #{} (range 10))
+                                 (into #{} (range 30))))))
 
 "Group a Sequence"
 "Given a function f and a sequence s, write a function which returns a map. The keys should be the values of f applied to each item in s. The value at each key should be a vector of corresponding items in the order they appear in s."
@@ -350,3 +350,84 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
 (assert (= 255   (bin-read "11111111")))
 (assert (= 1365  (bin-read "10101010101")))
 (assert (= 65535 (bin-read "1111111111111111")))
+
+"Symmetric Difference"
+"Write a function which returns the symmetric difference of two sets. The symmetric difference is the set of items belonging to one but not both of the two sets."
+(defn sym-diff [set1 set2]
+  (clojure.set/union (clojure.set/difference set1 set2)
+                     (clojure.set/difference set2 set1)))
+(assert (= (sym-diff #{1 2 3 4 5 6} #{1 3 5 7}) #{2 4 6 7}))
+(assert (= (sym-diff #{:a :b :c} #{}) #{:a :b :c}))
+(assert (= (sym-diff #{} #{4 5 6}) #{4 5 6}))
+(assert (= (sym-diff #{[1 2] [2 3]} #{[2 3] [3 4]}) #{[1 2] [3 4]}))
+
+"dot product"
+"Create a function that computes the dot product of two sequences. You may assume that the vectors will have the same length."
+(defn dot-prod [coll1 coll2]
+  (reduce + (map (fn [[item1 item2]] (* item1 item2))
+                 (map vector coll1 coll2))))
+(assert (= 0 (dot-prod [0 1 0] [1 0 0])))
+(assert (= 3 (dot-prod [1 1 1] [1 1 1])))
+(assert (= 32 (dot-prod [1 2 3] [4 5 6])))
+(assert (= 256 (dot-prod [2 5 6] [100 10 1])))
+
+"Through the Looking Class"
+"Enter a value which satisfies the following:"
+(let [x java.lang.Class]
+  (and (= (class x) x) x))
+
+"Infix Calculator"
+"Your friend Joe is always whining about Lisps using the prefix notation for math. Show him how you could easily write a function that does math using the infix notation. Is your favorite language that flexible, Joe? Write a function that accepts a variable length mathematical expression consisting of numbers and the operations +, -, *, and /. Assume a simple calculator that does not do precedence and instead just calculates left to right."
+(defn infix [& args]
+  (reduce (fn [v [op arg]] (op v arg))
+          (first args)
+          (partition 2 (rest args))))
+(assert (= 7  (infix 2 + 5)))
+(assert (= 42 (infix 38 + 48 - 2 / 2)))
+(assert (= 8  (infix 10 / 2 - 1 * 2)))
+(assert (= 72 (infix 20 / 2 + 2 + 4 + 8 - 6 - 10 * 9)))
+
+"Pascal's Triangle"
+"Pascal's triangle is a triangle of numbers computed using the following rules:
+
+- The first row is 1.
+- Each successive row is computed by adding together adjacent numbers in the row above, and adding a 1 to the beginning and end of the row.
+
+Write a function which returns the nth row of Pascal's Triangle."
+(defn pascal [n]
+  (loop [counter 1 result [1]]
+    (if (= counter n)
+      result
+      (recur (inc counter)
+             (let [row (vec (concat [0] result [0]))]
+               (for [i (range 1 (count row))]
+                 (+ (get row i) (get row (dec i)))))))))
+(assert (= (pascal 1) [1]))
+(assert (= (map pascal (range 1 6))
+           [     [1]
+                 [1 1]
+                 [1 2 1]
+                 [1 3 3 1]
+                 [1 4 6 4 1]]))
+(assert (= (pascal 11)
+           [1 10 45 120 210 252 210 120 45 10 1]))
+
+"Indexing Sequences"
+"Transform a sequence into a sequence of pairs containing the original elements along with their index."
+(defn indexer [coll]
+  (map vector coll (range)))
+(assert (= (indexer [:a :b :c]) [[:a 0] [:b 1] [:c 2]]))
+(assert (= (indexer [0 1 3]) '((0 0) (1 1) (3 2))))
+(assert (= (indexer [[:foo] {:bar :baz}]) [[[:foo] 0] [{:bar :baz} 1]]))
+
+"Sum of square of digits"
+"Write a function which takes a collection of integers as an argument. Return the count of how many elements are smaller than the sum of their squared component digits. For example: 10 is larger than 1 squared plus 0 squared; whereas 15 is smaller than 1 squared plus 5 squared."
+(defn sum-squared-digits [nums]
+  (count
+   (filter (fn [n] (< n (apply + (map #(* % %)
+                                     (map #(-> % str Integer/parseInt) (str n))))))
+           nums)))
+(assert (= 8 (sum-squared-digits (range 10))))
+(assert (= 19 (sum-squared-digits (range 30))))
+(assert (= 50 (sum-squared-digits (range 100))))
+(assert (= 50 (sum-squared-digits (range 1000))))
