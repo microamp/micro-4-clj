@@ -256,10 +256,10 @@ dicate x) where x is an item in the collection."
 "Greatest Common Divisor"
 "Given two integers, write a function which returns the greatest common divisor."
 (defn gcd [x y]
-    (loop [div (min x y)]
-      (if (and (zero? (mod x div)) (zero? (mod y div)))
-        div
-        (recur (dec div)))))
+  (loop [div (min x y)]
+    (if (and (zero? (mod x div)) (zero? (mod y div)))
+      div
+      (recur (dec div)))))
 (assert (= (gcd 2 4) 2))
 (assert (= (gcd 10 5) 5))
 (assert (= (gcd 5 7) 1))
@@ -431,3 +431,33 @@ Write a function which returns the nth row of Pascal's Triangle."
 (assert (= 19 (sum-squared-digits (range 30))))
 (assert (= 50 (sum-squared-digits (range 100))))
 (assert (= 50 (sum-squared-digits (range 1000))))
+
+"To Tree, or not to Tree"
+"Write a predicate which checks whether or not a given sequence represents a binary tree. Each node in the tree must have a value, a left child, and a right child."
+"(In computer science, a binary tree is a tree data structure in which each node has at most two children (referred to as the left child and the right child). In a binary tree, the degree of each node can be at most two.)"
+
+(defn btree? [coll]
+  (if (nil? coll)
+    true
+    (if (or (list? coll) (vector? coll))
+      (let [root (first coll) children (rest coll)]
+        (if (and (not (nil? root)) (= (count children) 2))
+          (and (btree? (first children))
+               (btree? (second children)))
+          false))
+      false)))
+
+(assert (= (btree? '(:a (:b nil nil) nil))
+           true))
+(assert (= (btree? '(:a (:b nil nil)))
+           false))
+(assert (= (btree? [1 nil [2 [3 nil nil] [4 nil nil]]])
+           true))
+(assert (= (btree? [1 [2 nil nil] [3 nil nil] [4 nil nil]])
+           false))
+(assert (= (btree? [1 [2 [3 [4 nil nil] nil] nil] nil])
+           true))
+(assert (= (btree? [1 [2 [3 [4 false nil] nil] nil] nil])
+           false))
+(assert (= (btree? '(:a nil ()))
+           false))
