@@ -439,13 +439,13 @@ Write a function which returns the nth row of Pascal's Triangle."
 (defn btree? [coll]
   (if (nil? coll)
     true
-    (if (or (list? coll) (vector? coll))
+    (if (not (or (list? coll) (vector? coll)))
+      false
       (let [root (first coll) children (rest coll)]
-        (if (and (not (nil? root)) (= (count children) 2))
-          (and (btree? (first children))
-               (btree? (second children)))
-          false))
-      false)))
+        (if (or (nil? root) (not (= (count children) 2)))
+          false
+          (and (recur (first children))
+               (recur (second children))))))))
 
 (assert (= (btree? '(:a (:b nil nil) nil))
            true))
