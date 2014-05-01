@@ -492,8 +492,8 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
         (first values)
         (let [[k v] (apply min-key (fn [[k v]] v) mults)]
           (recur (assoc mults k (+ v k))))))))
-(== (lcm 2 3) 6)
-(== (lcm 5 3 7) 105)
-(== (lcm 1/3 2/5) 2)
-(== (lcm 3/4 1/6) 3/2)
-(== (lcm 7 5/7 2 3/5) 210)
+(assert (== (lcm 2 3) 6))
+(assert (== (lcm 5 3 7) 105))
+(assert (== (lcm 1/3 2/5) 2))
+(assert (== (lcm 3/4 1/6) 3/2))
+(assert (== (lcm 7 5/7 2 3/5) 210))
