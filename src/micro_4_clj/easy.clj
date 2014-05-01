@@ -451,7 +451,7 @@ Write a function which returns the nth row of Pascal's Triangle."
            true))
 (assert (= (btree? '(:a (:b nil nil)))
            false))
-(assert (= (btree? [1 nil [2 [3 nil nil] [4 nil nil]]])
+n(assert (= (btree? [1 nil [2 [3 nil nil] [4 nil nil]]])
            true))
 (assert (= (btree? [1 [2 nil nil] [3 nil nil] [4 nil nil]])
            false))
@@ -482,3 +482,18 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
 (= (range 13) (map (comp :rank card str)
                    '[S2 S3 S4 S5 S6 S7
                      S8 S9 ST SJ SQ SK SA]))
+
+"Least Common Multiple"
+"Write a function which calculates the least common multiple. Your function should accept a variable number of positive integers or ratios."
+(defn lcm [& nums]
+  (loop [mults (apply merge (map (fn [k] {k k}) nums))]
+    (let [values (vals mults)]
+      (if (apply = values)
+        (first values)
+        (let [[k v] (apply min-key (fn [[k v]] v) mults)]
+          (recur (assoc mults k (+ v k))))))))
+(== (lcm 2 3) 6)
+(== (lcm 5 3 7) 105)
+(== (lcm 1/3 2/5) 2)
+(== (lcm 3/4 1/6) 3/2)
+(== (lcm 7 5/7 2 3/5) 210)
