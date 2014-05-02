@@ -435,7 +435,6 @@ Write a function which returns the nth row of Pascal's Triangle."
 "To Tree, or not to Tree"
 "Write a predicate which checks whether or not a given sequence represents a binary tree. Each node in the tree must have a value, a left child, and a right child."
 "(In computer science, a binary tree is a tree data structure in which each node has at most two children (referred to as the left child and the right child). In a binary tree, the degree of each node can be at most two.)"
-
 (defn btree? [coll]
   (if (nil? coll)
     true
@@ -446,7 +445,6 @@ Write a function which returns the nth row of Pascal's Triangle."
           false
           (and (recur (first children))
                (recur (second children))))))))
-
 (assert (= (btree? '(:a (:b nil nil) nil))
            true))
 (assert (= (btree? '(:a (:b nil nil)))
@@ -475,7 +473,6 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
         rank (last repr)]
     {:suit (get suits suit)
      :rank (or (get ranks rank) (- (-> rank str Integer/parseInt int) 2))}))
-
 (= {:suit :diamond :rank 10} (card "DQ"))
 (= {:suit :heart :rank 3} (card "H5"))
 (= {:suit :club :rank 12} (card "CA"))
@@ -497,3 +494,72 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
 (assert (== (lcm 1/3 2/5) 2))
 (assert (== (lcm 3/4 1/6) 3/2))
 (assert (== (lcm 7 5/7 2 3/5) 210))
+
+"Pascal's Trapezoid"
+"Write a function that, for any given input vector of numbers, returns an infinite lazy sequence of vectors, where each next one is constructed from the previous following the rules used in Pascal's Triangle. For example, for [3 1 2], the next row is [3 4 3 2].
+
+Beware of arithmetic overflow! In clojure (since version 1.3 in 2011), if you use an arithmetic operator like + and the result is too large to fit into a 64-bit integer, an exception is thrown. You can use +' to indicate that you would rather overflow into Clojure's slower, arbitrary-precision bigint."
+(defn trapezoid [sq]
+  (iterate
+   (fn [row]
+     (let [rowed (vec (concat [0] row [0]))]
+       (map (fn [i] (+' (get rowed i) (get rowed (dec i))))
+            (rest (range (count rowed))))))
+   sq))
+(assert (= (second (trapezoid [2 3 2])) [2 5 5 2]))
+(assert (= (take 5 (trapezoid [1])) [[1] [1 1] [1 2 1] [1 3 3 1] [1 4 6 4 1]]))
+(assert (= (take 2 (trapezoid [3 1 2])) [[3 1 2] [3 4 3 2]]))
+(assert (= (take 100 (trapezoid [2 4 2])) (rest (take 101 (trapezoid [2 2])))))
+
+"Trees into tables"
+"Because Clojure's for macro allows you to \"walk\" over multiple sequences in a nested fashion, it is excellent for transforming all sorts of sequences. If you don't want a sequence as your final output (say you want a map), you are often still best-off using for, because you can produce a sequence and feed it into a map, for examaple.
+
+For this problem, your goal is to \"flatten\" a map of hashmaps. Each key in your output map should be the \"path\"1 that you would have to take in the original map to get to a value, so for example {1 {2 3}} should result in {[1 2] 3}. You only need to flatten one level of maps: if one of the values is a map, just leave it alone.
+
+1 That is, (get-in original [k1 k2]) should be the same as (get result [k1 k2])"
+(defn tree-to-table [m]
+  (apply merge
+   (flatten
+    (for [[k v] m]
+      (for [[k2 v2] v]
+        {[k k2] v2})))))
+(assert (= (tree-to-table '{a {p 1, q 2}
+                            b {m 3, n 4}})
+           '{[a p] 1, [a q] 2
+             [b m] 3, [b n] 4}))
+(assert (= (tree-to-table '{[1] {a b c d}
+                            [2] {q r s t u v w x}})
+           '{[[1] a] b, [[1] c] d,
+             [[2] q] r, [[2] s] t,
+             [[2] u] v, [[2] w] x}))
+(assert (= (tree-to-table '{m {1 [a b c] 3 nil}})
+           '{[m 1] [a b c], [m 3] nil}))
+
+"Beauty is Symmetry"
+"Let us define a binary tree as \"symmetric\" if the left half of the tree is the mirror image of the right half of the tree. Write a predicate to determine whether or not a given binary tree is symmetric. (see To Tree, or not to Tree for a reminder on the tree representation we're using)."
+(defn mirror [tree]
+  (if (nil? tree)
+    nil
+    (let [root (first tree)
+          left-child (-> tree rest first)
+          right-child (-> tree rest second)]
+      (conj [root]
+            (mirror right-child)
+            (mirror left-child)))))
+(defn symmetric? [tree]
+  (let [left-child (-> tree rest first)
+        right-child (-> tree rest second)]
+    (= (mirror left-child)
+       right-child)))
+(assert (= (symmetric? '(:a (:b nil nil) (:b nil nil))) true))
+(assert (= (symmetric? '(:a (:b nil nil) nil)) false))
+(assert (= (symmetric? '(:a (:b nil nil) (:c nil nil))) false))
+(assert (= (symmetric? [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
+                        [2 [3 nil [4 [6 nil nil] [5 nil nil]]] nil]])
+           true))
+(assert (= (symmetric? [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
+                        [2 [3 nil [4 [5 nil nil] [6 nil nil]]] nil]])
+           false))
+(assert (= (symmetric? [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
+                        [2 [3 nil [4 [6 nil nil] nil]] nil]])
+           false))
