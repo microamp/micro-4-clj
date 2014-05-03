@@ -563,3 +563,62 @@ For this problem, your goal is to \"flatten\" a map of hashmaps. Each key in you
 (assert (= (symmetric? [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
                         [2 [3 nil [4 [6 nil nil] nil]] nil]])
            false))
+
+"Intro to Destructuring 2"
+"Sequential destructuring allows you to bind symbols to parts of sequential things (vectors, lists, seqs, etc.): (let [bindings*] exprs*) Complete the bindings so all let-parts evaluate to 3."
+(assert (= 3
+           (let [[op arg] [+ (range 3)]] (apply op arg))
+           (let [[[op arg] b] [[+ 1] 2]] (op arg b))
+           (let [[op arg] [inc 2]] (op arg))))
+
+"Pairwise Disjoint Sets"
+"Given a set of sets, create a function which returns true if no two of those sets have any elements in common1 and false otherwise. Some of the test cases are a bit tricky, so pay a little more attention to them.
+
+1Such sets are usually called pairwise disjoint or mutually disjoint."
+(defn pairwise-disjoint? [sets]
+  (loop [s (first sets) others (rest sets)]
+    (if (empty? others)
+      true
+      (let [disjoint? (every? identity (for [item s other-set others] (not (contains? other-set item))))]
+        (if (not disjoint?)
+          false
+          (recur (first others) (rest others)))))))
+(assert (= (pairwise-disjoint? #{#{\U} #{\s} #{\e \R \E} #{\P \L} #{\.}})
+           true))
+(assert (= (pairwise-disjoint? #{#{:a :b :c :d :e}
+                                 #{:a :b :c :d}
+                                 #{:a :b :c}
+                                 #{:a :b}
+                                 #{:a}})
+           false))
+(assert (= (pairwise-disjoint? #{#{[1 2 3] [4 5]}
+                                 #{[1 2] [3 4 5]}
+                                 #{[1] [2] 3 4 5}
+                                 #{1 2 [3 4] [5]}})
+           true))
+(assert (= (pairwise-disjoint? #{#{'a 'b}
+                                 #{'c 'd 'e}
+                                 #{'f 'g 'h 'i}
+                                 #{''a ''c ''f}})
+           true))
+(assert (= (pairwise-disjoint? #{#{'(:x :y :z) '(:x :y) '(:z) '()}
+                                 #{#{:x :y :z} #{:x :y} #{:z} #{}}
+                                 #{'[:x :y :z] [:x :y] [:z] [] {}}})
+           false))
+(assert (= (pairwise-disjoint? #{#{(= "true") false}
+                                 #{:yes :no}
+                                 #{(class 1) 0}
+                                 #{(symbol "true") 'false}
+                                 #{(keyword "yes") ::no}
+                                 #{(class '1) (int \0)}})
+           false))
+(assert (= (pairwise-disjoint? #{#{distinct?}
+                                 #{#(-> %) #(-> %)}
+                                 #{#(-> %) #(-> %) #(-> %)}
+                                 #{#(-> %) #(-> %) #(-> %)}})
+           true))
+(assert (= (pairwise-disjoint? #{#{(#(-> *)) + (quote mapcat) #_ nil}
+                                 #{'+ '* mapcat (comment mapcat)}
+                                 #{(do) set contains? nil?}
+                                 #{, , , #_, , empty?}})
+           false))
