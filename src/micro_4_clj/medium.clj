@@ -71,3 +71,18 @@
 (assert (= (take 5 (my-reductions + (range))) [0 1 3 6 10]))
 (assert (= (my-reductions conj [1] [2 3 4]) [[1] [1 2] [1 2 3] [1 2 3 4]]))
 (assert (= (last (my-reductions * 2 [3 4 5])) (reduce * 2 [3 4 5]) 120))
+
+"intoCamelCase"
+"When working with java, you often need to create an object with fieldsLikeThis, but you'd rather work with a hashmap that has :keys-like-this until it's time to convert. Write a function which takes lower-case hyphen-separated strings and converts them to camel-case strings."
+(defn camel-case [s]
+  (let [splitted (clojure.string/split s #"\-")]
+    (if (= (count splitted) 1)
+      (first splitted)
+      (str (first splitted)
+           (apply str (map #(reduce (fn [a b] (str a b))
+                                    (-> (first %) str .toUpperCase)
+                                    (rest %))
+                           (rest splitted)))))))
+(assert (= (camel-case "something") "something"))
+(assert (= (camel-case "multi-word-key") "multiWordKey"))
+(assert (= (camel-case "leaveMeAlone") "leaveMeAlone"))
