@@ -86,3 +86,38 @@
 (assert (= (camel-case "something") "something"))
 (assert (= (camel-case "multi-word-key") "multiWordKey"))
 (assert (= (camel-case "leaveMeAlone") "leaveMeAlone"))
+
+"Sequs Horribilis"
+"Create a function which takes an integer and a nested collection of integers as arguments. Analyze the elements of the input collection and return a sequence which maintains the nested structure, and which includes all elements starting from the head whose sum is less than or equal to the input integer."
+(defn sequs-h
+  ([limit coll]
+     (sequs-h limit coll [] 0))
+  ([limit coll result sum]
+     (if (empty? coll)
+       result
+       (let [first-item (first coll)]
+         (if (integer? first-item)
+           (let [after-sum (+ sum first-item)]
+             (if (> after-sum limit)
+               result
+               (sequs-h (- limit first-item)
+                        (rest coll)
+                        (conj result first-item)
+                        (+ sum first-item))))
+           (conj result
+                 (sequs-h limit
+                          first-item)))))))
+(assert (=  (sequs-h 10 [1 2 [3 [4 5] 6] 7])
+            '(1 2 (3 (4)))))
+(assert (=  (sequs-h 30 [1 2 [3 [4 [5 [6 [7 8]] 9]] 10] 11])
+            '(1 2 (3 (4 (5 (6 (7))))))))
+(assert (=  (sequs-h 9 (range))
+            '(0 1 2 3)))
+(assert (=  (sequs-h 1 [[[[[1]]]]])
+            '(((((1)))))))
+(assert (=  (sequs-h 0 [1 2 [3 [4 5] 6] 7])
+            '()))
+(assert (=  (sequs-h 0 [0 0 [0 [0]]])
+            '(0 0 (0 (0)))))
+(assert (=  (sequs-h 1 [-10 [1 [2 3 [4 5 [6 7 [8]]]]]])
+            '(-10 (1 (2 3 (4))))))
