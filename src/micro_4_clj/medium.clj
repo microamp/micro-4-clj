@@ -151,3 +151,15 @@
 (assert (= (liss [5 6 1 3 2 7]) [5 6]))
 (assert (= (liss [2 3 3 4 5]) [3 4 5]))
 (assert (= (liss [7 6 5 4]) []))
+
+"Function Composition"
+"Write a function which allows you to create function compositions. The parameter list should take a variable number of functions, and create a function applies them from right-to-left."
+(defn my-comp [& funcs]
+  (fn [& args]
+    (reduce (fn [r f] (f r))
+            (apply (last funcs) args)
+            (reverse (butlast funcs)))))
+(= [3 2 1] ((my-comp rest reverse) [1 2 3 4]))
+(= 5 ((my-comp (partial + 3) second) [1 2 3 4]))
+(= true ((my-comp zero? #(mod % 8) +) 3 5 7 9))
+(= "HELLO" ((my-comp #(.toUpperCase %) #(apply str %) take) 5 "hello world"))
