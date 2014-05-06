@@ -127,10 +127,10 @@
 (defn flipper [func]
   (fn [a b]
     (func b a)))
-(= 3 ((flipper nth) 2 [1 2 3 4 5]))
-(= true ((flipper >) 7 8))
-(= 4 ((flipper quot) 2 8))
-(= [1 2 3] ((flipper take) [1 2 3 4 5] 3))
+(assert (= 3 ((flipper nth) 2 [1 2 3 4 5])))
+(assert (= true ((flipper >) 7 8)))
+(assert (= 4 ((flipper quot) 2 8)))
+(assert (= [1 2 3] ((flipper take) [1 2 3 4 5] 3)))
 
 "Longest Increasing Sub-Seq"
 "Given a vector of integers, find the longest consecutive sub-sequence of increasing numbers. If two sub-sequences have the same length, use the one that occurs first. An increasing sub-sequence must have a length of 2 or greater to qualify."
@@ -146,7 +146,6 @@
           (recur (rest s)
                  (if (>= (count longest) (count current)) longest current)
                  [item]))))))
-(liss [1 0 1 2 3 0 4 5])
 (assert (= (liss [1 0 1 2 3 0 4 5]) [0 1 2 3]))
 (assert (= (liss [5 6 1 3 2 7]) [5 6]))
 (assert (= (liss [2 3 3 4 5]) [3 4 5]))
@@ -159,7 +158,16 @@
     (reduce (fn [r f] (f r))
             (apply (last funcs) args)
             (reverse (butlast funcs)))))
-(= [3 2 1] ((my-comp rest reverse) [1 2 3 4]))
-(= 5 ((my-comp (partial + 3) second) [1 2 3 4]))
-(= true ((my-comp zero? #(mod % 8) +) 3 5 7 9))
-(= "HELLO" ((my-comp #(.toUpperCase %) #(apply str %) take) 5 "hello world"))
+(assert (= [3 2 1] ((my-comp rest reverse) [1 2 3 4])))
+(assert (= 5 ((my-comp (partial + 3) second) [1 2 3 4])))
+(assert (= true ((my-comp zero? #(mod % 8) +) 3 5 7 9)))
+(assert (= "HELLO" ((my-comp #(.toUpperCase %) #(apply str %) take) 5 "hello world")))
+
+"Juxtaposition"
+"Take a set of functions and return a new function that takes a variable number of arguments and returns a sequence containing the result of applying each function left-to-right to the argument list."
+(defn my-juxt [& funcs]
+  (fn [& args]
+    (map #(apply % args) funcs)))
+(assert (= [21 6 1] ((my-juxt + max min) 2 3 5 1 6 4)))
+(assert (= ["HELLO" 5] ((my-juxt #(.toUpperCase %) count) "hello")))
+(assert (= [2 6 4] ((my-juxt :a :c :b) {:a 2, :b 4, :c 6, :d 8 :e 10})))
