@@ -622,3 +622,15 @@ For this problem, your goal is to \"flatten\" a map of hashmaps. Each key in you
                                  #{(do) set contains? nil?}
                                  #{, , , #_, , empty?}})
            false))
+
+"Flatten a Sequence"
+"Write a function which flattens a sequence."
+(defn my-flatten [coll]
+  (reduce (fn [a b] (if (or (list? b) (vector? b))
+                     (concat a (my-flatten b))
+                     (concat a [b])))
+          []
+          coll))
+(assert (= (my-flatten '((1 2) 3 [4 [5 6]])) '(1 2 3 4 5 6)))
+(assert (= (my-flatten ["a" ["b"] "c"]) '("a" "b" "c")))
+(assert (= (my-flatten '((((:a))))) '(:a)))
