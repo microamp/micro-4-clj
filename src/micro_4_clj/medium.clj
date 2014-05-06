@@ -135,19 +135,18 @@
 "Longest Increasing Sub-Seq"
 "Given a vector of integers, find the longest consecutive sub-sequence of increasing numbers. If two sub-sequences have the same length, use the one that occurs first. An increasing sub-sequence must have a length of 2 or greater to qualify."
 (defn liss [coll]
-  (loop [s (rest coll)
-         consecs [[(first coll)]]]
+  (loop [s (rest coll) longest [[]] current [(first coll)]]
     (if (empty? s)
-      (let [longest (reduce (fn [c1 c2] (if (>= (count c1) (count c2)) c1 c2))
-                            consecs)]
-        (if (>= (count longest) 2) longest []))
-      (let [current-item (first s)
-            last-item (-> consecs last last)]
-        (recur (rest s) (if (> current-item last-item)
-                          (conj (vec (butlast consecs))
-                                (conj (last consecs) current-item))
-                          (conj consecs
-                                [current-item])))))))
+      (let [result
+            (if (>= (count longest) (count current)) longest current)]
+        (if (>= (count result) 2) result []))
+      (let [item (first s) prev (last current)]
+        (if (> item prev)
+          (recur (rest s) longest (conj current item))
+          (recur (rest s)
+                 (if (>= (count longest) (count current)) longest current)
+                 [item]))))))
+(liss [1 0 1 2 3 0 4 5])
 (assert (= (liss [1 0 1 2 3 0 4 5]) [0 1 2 3]))
 (assert (= (liss [5 6 1 3 2 7]) [5 6]))
 (assert (= (liss [2 3 3 4 5]) [3 4 5]))
