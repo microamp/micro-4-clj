@@ -121,3 +121,34 @@
             '(0 0 (0 (0)))))
 (assert (=  (sequs-h 1 [-10 [1 [2 3 [4 5 [6 7 [8]]]]]])
             '(-10 (1 (2 3 (4))))))
+
+"Flipping out"
+"Write a higher-order function which flips the order of the arguments of an input function."
+(defn flipper [func]
+  (fn [a b]
+    (func b a)))
+(= 3 ((flipper nth) 2 [1 2 3 4 5]))
+(= true ((flipper >) 7 8))
+(= 4 ((flipper quot) 2 8))
+(= [1 2 3] ((flipper take) [1 2 3 4 5] 3))
+
+"Longest Increasing Sub-Seq"
+"Given a vector of integers, find the longest consecutive sub-sequence of increasing numbers. If two sub-sequences have the same length, use the one that occurs first. An increasing sub-sequence must have a length of 2 or greater to qualify."
+(defn liss [coll]
+  (loop [s (rest coll)
+         consecs [[(first coll)]]]
+    (if (empty? s)
+      (let [longest (reduce (fn [c1 c2] (if (>= (count c1) (count c2)) c1 c2))
+                            consecs)]
+        (if (>= (count longest) 2) longest []))
+      (let [current-item (first s)
+            last-item (-> consecs last last)]
+        (recur (rest s) (if (> current-item last-item)
+                          (conj (vec (butlast consecs))
+                                (conj (last consecs) current-item))
+                          (conj consecs
+                                [current-item])))))))
+(assert (= (liss [1 0 1 2 3 0 4 5]) [0 1 2 3]))
+(assert (= (liss [5 6 1 3 2 7]) [5 6]))
+(assert (= (liss [2 3 3 4 5]) [3 4 5]))
+(assert (= (liss [7 6 5 4]) []))
