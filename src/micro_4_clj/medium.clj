@@ -171,3 +171,27 @@
 (assert (= [21 6 1] ((my-juxt + max min) 2 3 5 1 6 4)))
 (assert (= ["HELLO" 5] ((my-juxt #(.toUpperCase %) count) "hello")))
 (assert (= [2 6 4] ((my-juxt :a :c :b) {:a 2, :b 4, :c 6, :d 8 :e 10})))
+
+"Word Sorting"
+"Write a function that splits a sentence up into a sorted list of words. Capitalization should not affect sort order and punctuation should be ignored."
+(defn word-sorting [sentence]
+  (sort-by #(.toLowerCase %) (re-seq #"\w+" sentence)))
+(assert (= (word-sorting  "Have a nice day.")
+           ["a" "day" "Have" "nice"]))
+(assert (= (word-sorting  "Clojure is a fun language!")
+           ["a" "Clojure" "fun" "is" "language"]))
+(assert (= (word-sorting  "Fools fall for foolish follies.")
+           ["fall" "follies" "foolish" "Fools" "for"]))
+
+"Merge with a Function"
+"Write a function which takes a function f and a variable number of maps. Your function should return a map that consists of the rest of the maps conj-ed onto the first. If a key occurs in more than one map, the mapping (s) from the latter (left-to-right) should be combined with the mapping in the result by calling (f val-in-result val-in-latter)"
+(defn my-merge-with [f & hmaps]
+  (into {} (map (fn [[k v]] [k (reduce f v)])
+                (map (fn [[k vecs]] [k (map (fn [v] (get v 1)) vecs)])
+                     (group-by (fn [[k v]] k) (apply concat hmaps))))))
+(assert (= (my-merge-with * {:a 2, :b 3, :c 4} {:a 2} {:b 2} {:c 5})
+           {:a 4, :b 6, :c 20}))
+(assert (= (my-merge-with - {1 10, 2 20} {1 3, 2 10, 3 15})
+           {1 7, 2 10, 3 15}))
+(assert (= (my-merge-with concat {:a [3], :b [6]} {:a [4 5], :c [8 9]} {:b [7]})
+           {:a [3 4 5], :b [6 7], :c [8 9]}))
