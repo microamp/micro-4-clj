@@ -195,3 +195,14 @@
            {1 7, 2 10, 3 15}))
 (assert (= (my-merge-with concat {:a [3], :b [6]} {:a [4 5], :c [8 9]} {:b [7]})
            {:a [3 4 5], :b [6 7], :c [8 9]}))
+
+"Oscilrate"
+"Write an oscillating iterate: a function that takes an initial value and a variable number of functions. It should return a lazy sequence of the functions applied to the value in order, restarting from the first function after it hits the end."
+(defn oscilrate [v & funcs]
+  (reductions
+   (fn [v f] (f v))
+   v
+   (cycle funcs)))
+(assert (= (take 3 (oscilrate 3.14 int double)) [3.14 3 3.0]))
+(assert (= (take 5 (oscilrate 3 #(- % 3) #(+ 5 %))) [3 0 5 2 7]))
+(assert (= (take 12 (oscilrate 0 inc dec inc dec inc)) [0 1 0 1 0 1 2 1 2 1 2 3]))
