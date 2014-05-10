@@ -206,3 +206,26 @@
 (assert (= (take 3 (oscilrate 3.14 int double)) [3.14 3 3.0]))
 (assert (= (take 5 (oscilrate 3 #(- % 3) #(+ 5 %))) [3 0 5 2 7]))
 (assert (= (take 12 (oscilrate 0 inc dec inc dec inc)) [0 1 0 1 0 1 2 1 2 1 2 3]))
+
+"Insert between two items"
+"Write a function that takes a two-argument predicate, a value, and a collection; and returns a new collection where the value is inserted between every two items that satisfy the predicate."
+(defn ibti [p1 p2 coll]
+  (filter
+   identity
+   (interleave
+    coll
+    (concat
+     (map (fn [[a b]] (if (p1 a b) p2))
+          (partition 2 1 coll))
+     (repeat nil)))))
+(assert (= '(1 :less 6 :less 7 4 3) (ibti < :less [1 6 7 4 3])))
+(assert (= '(2) (ibti > :more [2])))
+(assert (= [0 1 :x 2 :x 3 :x 4]  (ibti #(and (pos? %) (< % %2)) :x (range 5))))
+(assert (empty? (ibti > :more ())))
+(assert (= [0 1 :same 1 2 3 :same 5 8 13 :same 21]
+           (take 12 (->> [0 1]
+                         (iterate (fn [[a b]] [b (+ a b)]))
+                         (map first)         ; fibonacci numbers
+                         (ibti (fn [a b]      ; both even or both odd
+                                 (= (mod a 2) (mod b 2)))
+                               :same)))))
