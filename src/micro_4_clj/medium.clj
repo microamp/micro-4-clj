@@ -269,3 +269,20 @@
 (assert (= (happy-number? 986543210) true))
 (assert (= (happy-number? 2) false))
 (assert (= (happy-number? 3) false))
+
+"Identify keys and values"
+"Given an input sequence of keywords and numbers, create a map such that each key in the map is a keyword, and the value is a sequence of all the numbers (if any) between it and the next keyword in the sequence."
+(defn identify-kv [coll]
+  (let [pairs (partition 2 (partition-by keyword? coll))]
+    (if (empty? pairs)
+      {}
+      (apply merge
+             (map (fn [[k v]]
+                    (let [last-pairs [(last k) v]
+                          butlast-pairs (for [k (butlast k)] [k []])]
+                      (into {} (conj butlast-pairs last-pairs))))
+                  pairs)))))
+(assert (= {} (identify-kv [])))
+(assert (= {:a [1]} (identify-kv [:a 1])))
+(assert (= {:a [1], :b [2]} (identify-kv [:a 1, :b 2])))
+(assert (= {:a [1 2 3], :b [], :c [4]} (identify-kv [:a 1 2 3 :b :c 4])))
