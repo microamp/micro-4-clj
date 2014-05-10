@@ -199,10 +199,9 @@
 "Oscilrate"
 "Write an oscillating iterate: a function that takes an initial value and a variable number of functions. It should return a lazy sequence of the functions applied to the value in order, restarting from the first function after it hits the end."
 (defn oscilrate [v & funcs]
-  (reductions
-   (fn [v f] (f v))
-   v
-   (cycle funcs)))
+  (reductions (fn [v f] (f v))
+              v
+              (cycle funcs)))
 (assert (= (take 3 (oscilrate 3.14 int double)) [3.14 3 3.0]))
 (assert (= (take 5 (oscilrate 3 #(- % 3) #(+ 5 %))) [3 0 5 2 7]))
 (assert (= (take 12 (oscilrate 0 inc dec inc dec inc)) [0 1 0 1 0 1 2 1 2 1 2 3]))
@@ -210,14 +209,11 @@
 "Insert between two items"
 "Write a function that takes a two-argument predicate, a value, and a collection; and returns a new collection where the value is inserted between every two items that satisfy the predicate."
 (defn ibti [p1 p2 coll]
-  (filter
-   identity
-   (interleave
-    coll
-    (concat
-     (map (fn [[a b]] (if (p1 a b) p2))
-          (partition 2 1 coll))
-     (repeat nil)))))
+  (filter identity
+          (interleave coll
+                      (concat (map (fn [[a b]] (if (p1 a b) p2))
+                                   (partition 2 1 coll))
+                              (repeat nil)))))
 (assert (= '(1 :less 6 :less 7 4 3) (ibti < :less [1 6 7 4 3])))
 (assert (= '(2) (ibti > :more [2])))
 (assert (= [0 1 :x 2 :x 3 :x 4]  (ibti #(and (pos? %) (< % %2)) :x (range 5))))
@@ -240,3 +236,14 @@
            #{#{"meat" "team" "mate"}}))
 (assert (= (anagram ["veer" "lake" "item" "kale" "mite" "ever"])
            #{#{"veer" "ever"} #{"lake" "kale"} #{"mite" "item"}}))
+
+"Filter Perfect Squares"
+"Given a string of comma separated integers, write a function which returns a new comma separated string that only contains the numbers which are perfect squares."
+(defn fps [s]
+  (apply str
+   (interpose \,
+              (filter (fn [n] (let [sqrt (Math/sqrt (Integer/parseInt n))]
+                               (== sqrt (int sqrt))))
+                      (clojure.string/split s #"\,")))))
+(assert (= (fps "4,5,6,7,8,9") "4,9"))
+(assert (= (fps "15,16,25,36,37") "16,25,36"))
