@@ -247,3 +247,25 @@
                       (clojure.string/split s #"\,")))))
 (assert (= (fps "4,5,6,7,8,9") "4,9"))
 (assert (= (fps "15,16,25,36,37") "16,25,36"))
+
+"Happy numbers"
+"Happy numbers are positive integers that follow a particular formula: take each individual digit, square it, and then sum the squares to get a new number. Repeat with the new number and eventually, you might get to a number whose squared sum is 1. This is a happy number. An unhappy number (or sad number) is one that loops endlessly. Write a function that determines if a number is happy or not."
+(defn square [n]
+  (* n n))
+(defn sum-of-squares [n]
+  (reduce
+   +
+   (map (fn [x] (square (-> x str Integer/parseInt)))
+        (str n))))
+(defn happy-number? [n]
+  (loop [x n nums []]
+    (let [sum (sum-of-squares x)]
+      (if (= sum 1)
+        true
+        (if (some #(= % sum) nums)
+          false
+          (recur sum (conj nums sum)))))))
+(assert (= (happy-number? 7) true))
+(assert (= (happy-number? 986543210) true))
+(assert (= (happy-number? 2) false))
+(assert (= (happy-number? 3) false))
