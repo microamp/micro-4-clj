@@ -312,3 +312,30 @@
 (assert (= (intervals []) []))
 (assert (= (intervals [19 4 17 1 3 10 2 13 13 2 16 4 2 15 13 9 6 14 2 11])
            [[1 4] [6 6] [9 11] [13 17] [19 19]]))
+
+"Balancing Brackets"
+"When parsing a snippet of code it's often a good idea to do a sanity check to see if all the brackets match up. Write a function that takes in a string and returns truthy if all square [] round () and curly {} brackets are properly paired and legally nested, or returns falsey otherwise."
+(defn balanced? [s]
+  (let [brackets (re-seq #"[\[\]\(\)\{\}]" s)
+        matching {"]" "[" ")" "(" "}" "{"}]
+    (empty?
+     (reduce
+      (fn [o item]
+        (let [closing? (contains? matching item)]
+          (if (and closing? (= (last o) (get matching item)))
+            (vec (butlast o))
+            (conj o item))))
+      []
+      brackets))))
+(assert (balanced? "This string has no brackets."))
+(assert (balanced? "class Test {
+      public static void main(String[] args) {
+        System.out.println(\"Hello world.\");
+      }
+    }"))
+(assert (not (balanced? "(start, end]")))
+(assert (not (balanced? "())")))
+(assert (not (balanced? "[ { ] } ")))
+(assert (balanced? "([]([(()){()}(()(()))(([[]]({}()))())]((((()()))))))"))
+(assert (not (balanced? "([]([(()){()}(()(()))(([[]]({}([)))())]((((()()))))))")))
+(assert (not (balanced? "[")))
