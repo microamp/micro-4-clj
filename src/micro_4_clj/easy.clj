@@ -188,7 +188,7 @@ dicate x) where x is an item in the collection."
 "Interpose a Seq"
 "Write a function which separates the items of a sequence by an arbitrary value."
 (defn my-interpose [x coll]
-  (butlast (mapcat vector coll (take (count coll) (repeat x)))))
+  (butlast (interleave coll (take (count coll) (repeat x)))))
 (assert (= (my-interpose 0 [1 2 3]) [1 0 2 0 3]))
 (assert (= (apply str (my-interpose ", " ["one" "two" "three"])) "one, two, three"))
 (assert (= (my-interpose :z [:a :b :c :d]) [:a :z :b :z :c :z :d]))
