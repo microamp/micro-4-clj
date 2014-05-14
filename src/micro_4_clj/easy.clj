@@ -195,15 +195,14 @@ dicate x) where x is an item in the collection."
 
 "Pack a Sequence"
 "Write a function which packs consecutive duplicates into sub-lists."
-(defn pack [coll]
-  (loop [left coll result []]
-    (if (empty? left)
-      result
-      (recur (rest left)
-             (let [current (first left) previous (first (last result))]
-               (if (= current previous)
-                 (conj (vec (butlast result)) (conj (last result) current))
-                 (conj result [current])))))))
+(defn pack [c]
+  (reduce (fn [c item]
+            (if (= (-> c last last) item)
+              (conj (vec (butlast c))
+                    (conj (last c) item))
+              (conj c [item])))
+          [[(first c)]]
+          (rest c)))
 (assert (= (pack [1 1 2 1 1 1 3 3]) '((1 1) (2) (1 1 1) (3 3))))
 (assert (= (pack [:a :a :b :b :c]) '((:a :a) (:b :b) (:c))))
 (assert (= (pack [[1 2] [1 2] [3 4]]) '(([1 2] [1 2]) ([3 4]))))
@@ -212,7 +211,7 @@ dicate x) where x is an item in the collection."
 "Write a function which drops every Nth item from a sequence."
 (defn drop-every-nth [coll n]
   (map #(get coll %)
-       (filter #(not (= (mod (inc %) n) 0))
+       (filter #(not (zero? (mod (inc %) n)))
                (range (count coll)))))
 (assert (= (drop-every-nth [1 2 3 4 5 6 7 8] 3) [1 2 4 5 7 8]))
 (assert (= (drop-every-nth [:a :b :c :d :e :f] 2) [:a :c :e]))
@@ -224,8 +223,8 @@ dicate x) where x is an item in the collection."
 
 "Split a sequence"
 "Write a function which will split a sequence into two parts."
-(defn my-split [n coll]
-  [(subvec coll 0 n) (subvec coll n (count coll))])
+(defn my-split [n c]
+  [(take n c) (drop n c)])
 (assert (= (my-split 3 [1 2 3 4 5 6]) [[1 2 3] [4 5 6]]))
 (assert (= (my-split 1 [:a :b :c :d]) [[:a] [:b :c :d]]))
 (assert (= (my-split 2 [[1 2] [3 4] [5 6]]) [[[1 2] [3 4]] [[5 6]]]))
@@ -276,9 +275,10 @@ dicate x) where x is an item in the collection."
 "Re-implement Iterate"
 "Given a side-effect free function f and an initial value x write a function which returns an infinite lazy sequence of x, (f x), (f (f x)), (f (f (f x))), etc."
 (defn my-iterate [f x]
-  (map (fn [i] (reduce (fn [v f] (f v))
-                      x
-                      (repeat i f)))
+  (map (fn [i]
+         (reduce (fn [v f] (f v))
+                 x
+                 (repeat i f)))
        (range)))
 (assert (= (take 5 (my-iterate #(* 2 %) 1)) [1 2 4 8 16]))
 (assert (= (take 100 (my-iterate inc 0)) (take 100 (range))))
@@ -300,8 +300,8 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
 "Product Digits"
 "Write a function which multiplies two numbers and returns the result as a sequence of its digits."
 (defn prod-digits [a b]
-  (map (fn [[x]] (-> x str Integer/parseInt))
-       (partition 1 (str (* a b)))))
+  (map #(-> % str Integer/parseInt)
+       (str (* a b))))
 (assert (= (prod-digits 1 1) [1]))
 (assert (= (prod-digits 99 9) [8 9 1]))
 (assert (= (prod-digits 999 99) [9 8 9 0 1]))
@@ -321,13 +321,13 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
 
 "Group a Sequence"
 "Given a function f and a sequence s, write a function which returns a map. The keys should be the values of f applied to each item in s. The value at each key should be a vector of corresponding items in the order they appear in s."
-(defn my-group-by [f coll]
-  (loop [left coll result {}]
-    (if (empty? left)
-      result
-      (let [k (f (first left)) v (first left)]
-        (recur (rest left)
-               (assoc result k (conj (get result k []) v)))))))
+(defn my-group-by [f c]
+  (reduce (fn [hm item]
+            (let [evaled (f item)
+                  v (get hm evaled [])]
+              (assoc hm evaled (conj v item))))
+          {(f (first c)) [(first c)]}
+          (rest c)))
 (assert (= (my-group-by #(> % 5) [1 3 6 8]) {false [1 3], true [6 8]}))
 (assert (= (my-group-by #(apply / %) [[1 2] [2 4] [4 6] [3 6]])
            {1/2 [[1 2] [2 4] [3 6]], 2/3 [[4 6]]}))
@@ -423,10 +423,12 @@ Write a function which returns the nth row of Pascal's Triangle."
 "Sum of square of digits"
 "Write a function which takes a collection of integers as an argument. Return the count of how many elements are smaller than the sum of their squared component digits. For example: 10 is larger than 1 squared plus 0 squared; whereas 15 is smaller than 1 squared plus 5 squared."
 (defn sum-squared-digits [nums]
-  (count
-   (filter (fn [n] (< n (apply + (map #(* % %)
-                                     (map #(-> % str Integer/parseInt) (str n))))))
-           nums)))
+  (count (filter (fn [n]
+                   (let [squared (map #(* % %)
+                                      (map #(-> % str Integer/parseInt)
+                                           (str n)))]
+                     (< n (apply + squared))))
+                 nums)))
 (assert (= 8 (sum-squared-digits (range 10))))
 (assert (= 19 (sum-squared-digits (range 30))))
 (assert (= 50 (sum-squared-digits (range 100))))
