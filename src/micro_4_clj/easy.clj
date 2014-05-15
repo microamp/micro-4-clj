@@ -395,13 +395,12 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
 
 Write a function which returns the nth row of Pascal's Triangle."
 (defn pascal [n]
-  (loop [counter 1 result [1]]
-    (if (= counter n)
-      result
-      (recur (inc counter)
-             (let [row (vec (concat [0] result [0]))]
-               (for [i (range 1 (count row))]
-                 (+ (get row i) (get row (dec i)))))))))
+  (nth (iterate
+        (fn [c] (concat (vector (first c))
+                       (map #(apply +' %) (partition 2 1 c))
+                       (vector (last c))))
+        [1])
+       (dec n)))
 (assert (= (pascal 1) [1]))
 (assert (= (map pascal (range 1 6))
            [     [1]
@@ -501,13 +500,12 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
 "Write a function that, for any given input vector of numbers, returns an infinite lazy sequence of vectors, where each next one is constructed from the previous following the rules used in Pascal's Triangle. For example, for [3 1 2], the next row is [3 4 3 2].
 
 Beware of arithmetic overflow! In clojure (since version 1.3 in 2011), if you use an arithmetic operator like + and the result is too large to fit into a 64-bit integer, an exception is thrown. You can use +' to indicate that you would rather overflow into Clojure's slower, arbitrary-precision bigint."
-(defn trapezoid [sq]
+(defn trapezoid [coll]
   (iterate
-   (fn [row]
-     (let [rowed (vec (concat [0] row [0]))]
-       (map (fn [i] (+' (get rowed i) (get rowed (dec i))))
-            (rest (range (count rowed))))))
-   sq))
+   (fn [c] (concat (vector (first c))
+                  (map #(apply +' %) (partition 2 1 c))
+                  (vector (last c))))
+   coll))
 (assert (= (second (trapezoid [2 3 2])) [2 5 5 2]))
 (assert (= (take 5 (trapezoid [1])) [[1] [1 1] [1 2 1] [1 3 3 1] [1 4 6 4 1]]))
 (assert (= (take 2 (trapezoid [3 1 2])) [[3 1 2] [3 4 3 2]]))
@@ -578,13 +576,8 @@ For this problem, your goal is to \"flatten\" a map of hashmaps. Each key in you
 
 1Such sets are usually called pairwise disjoint or mutually disjoint."
 (defn pairwise-disjoint? [sets]
-  (loop [s (first sets) others (rest sets)]
-    (if (empty? others)
-      true
-      (let [disjoint? (every? identity (for [item s other-set others] (not (contains? other-set item))))]
-        (if (not disjoint?)
-          false
-          (recur (first others) (rest others)))))))
+  (let [joined (apply clojure.set/union sets)]
+    (= (count joined) (apply + (map count sets)))))
 (assert (= (pairwise-disjoint? #{#{\U} #{\s} #{\e \R \E} #{\P \L} #{\.}})
            true))
 (assert (= (pairwise-disjoint? #{#{:a :b :c :d :e}
