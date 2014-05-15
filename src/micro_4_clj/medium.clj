@@ -1,12 +1,9 @@
 "Rotate Sequence"
 "Write a function which can rotate a sequence in either direction."
-(defn rotate [i coll]
-  (if (>= i 0)
-    (take (count coll) (drop i (cycle coll)))
-    (let [limit (first (filter #(> % (Math/abs i))
-                               (map #(* (count coll) %)
-                                    (rest (range)))))]
-      (take (count coll) (drop (- limit (Math/abs i)) (cycle coll))))))
+(defn rotate [n c]
+  (if (pos? n)
+    (take (count c) (drop n (cycle c)))
+    (reverse (take (count c) (drop (Math/abs n) (cycle (reverse c)))))))
 (assert (= (rotate 2 [1 2 3 4 5]) '(3 4 5 1 2)))
 (assert (= (rotate -2 [1 2 3 4 5]) '(4 5 1 2 3)))
 (assert (= (rotate 6 [1 2 3 4 5]) '(2 3 4 5 1)))
