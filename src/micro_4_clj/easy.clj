@@ -629,3 +629,26 @@ For this problem, your goal is to \"flatten\" a map of hashmaps. Each key in you
 (assert (= (my-flatten '((1 2) 3 [4 [5 6]])) '(1 2 3 4 5 6)))
 (assert (= (my-flatten ["a" ["b"] "c"]) '("a" "b" "c")))
 (assert (= (my-flatten '((((:a))))) '(:a)))
+
+"Re-implement Map"
+"Map is one of the core elements of a functional programming language. Given a function f and an input sequence s, return a lazy sequence of (f x) for each element x in s.
+
+Special Restrictions:
+map
+map-indexed
+mapcat
+for
+"
+(defn my-map [f coll]
+  (reductions
+   (fn [a b] (f b))
+   (f (first coll))
+   (rest coll)))
+(assert (= [3 4 5 6 7]
+           (my-map inc [2 3 4 5 6])))
+(assert (= (repeat 10 nil)
+           (my-map (fn [_] nil) (range 10))))
+(assert (= [1000000 1000001]
+           (->> (my-map inc (range))
+                (drop (dec 1000000))
+                (take 2))))
