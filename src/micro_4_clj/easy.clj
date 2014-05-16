@@ -637,8 +637,7 @@ Special Restrictions:
 map
 map-indexed
 mapcat
-for
-"
+for"
 (defn my-map [f coll]
   (reductions
    (fn [a b] (f b))
@@ -652,3 +651,20 @@ for
            (->> (my-map inc (range))
                 (drop (dec 1000000))
                 (take 2))))
+
+"Comparisons"
+"For any orderable data type it's possible to derive all of the basic comparison operations (<, ≤, =, ≠, ≥, and >) from a single operation (any operator but = or ≠ will work). Write a function that takes three arguments, a less than operator for the data and two items to compare. The function should return a keyword describing the relationship between the two items. The keywords for the relationship between x and y are as follows:
+
+x = y → :eq
+x > y → :gt
+x < y → :lt"
+(defn comparisons [lt a b]
+  (if (lt a b)
+    :lt
+    (if (lt b a)
+      :gt
+      :eq)))
+(assert (= :gt (comparisons < 5 1)))
+(assert (= :eq (comparisons (fn [x y] (< (count x) (count y))) "pear" "plum")))
+(assert (= :lt (comparisons (fn [x y] (< (mod x 5) (mod y 5))) 21 3)))
+(assert (= :gt (comparisons > 0 2)))
