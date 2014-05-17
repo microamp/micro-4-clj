@@ -392,3 +392,35 @@ getClass"
 (assert (= :vector (black-box [1 2 3 4 5 6])))
 (assert (= :set (black-box #{10 (rand-int 5)})))
 (assert (= [:map :set :vector :list] (map black-box [{} #{} [] ()])))
+
+"Equivalence Classes"
+"A function f defined on a domain D induces an equivalence relation on D, as follows: a is equivalent to b with respect to f if and only if (f a) is equal to (f b). Write a function with arguments f and D that computes the equivalence classes of D with respect to f."
+(defn equivalence [f s]
+  (set (map set (vals (group-by f s)))))
+(assert (= (equivalence #(* % %) #{-2 -1 0 1 2})
+           #{#{0} #{1 -1} #{2 -2}}))
+(assert (= (equivalence #(rem % 3) #{0 1 2 3 4 5})
+           #{#{0 3} #{1 4} #{2 5}}))
+(assert (= (equivalence identity #{0 1 2 3 4})
+           #{#{0} #{1} #{2} #{3} #{4}}))
+(assert (= (equivalence (constantly true) #{0 1 2 3 4})
+           #{#{0 1 2 3 4}}))
+
+"Global take-while"
+"take-while is great for filtering sequences, but it limited: you can only examine a single item of the sequence at a time. What if you need to keep track of some state as you go over the sequence?
+
+Write a function which accepts an integer n, a predicate p, and a sequence. It should return a lazy sequence of  items in the list up to, but not including, the nth item that satisfies the predicate."
+(defn gtw [n p coll]
+  (take (count (take-while
+                #(> n (count (filter p (take % coll))))
+                (iterate inc 1)))
+        coll))
+(assert (= [2 3 5 7 11 13]
+           (gtw 4 #(= 2 (mod % 3))
+                [2 3 5 7 11 13 17 19 23])))
+(assert (= ["this" "is" "a" "sentence"]
+           (gtw 3 #(some #{\i} %)
+                ["this" "is" "a" "sentence" "i" "wrote"])))
+(assert (= ["this" "is"]
+           (gtw 1 #{"a"}
+                ["this" "is" "a" "sentence" "i" "wrote"])))
