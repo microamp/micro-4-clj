@@ -363,3 +363,32 @@
 (assert (= (primes 2) [2 3]))
 (assert (= (primes 5) [2 3 5 7 11]))
 (assert (= (last (primes 100)) 541))
+
+"Black Box Testing"
+"Clojure has many sequence types, which act in subtly different ways. The core functions typically convert them into a uniform \"sequence\" type and work with them that way, but it can be important to understand the behavioral and performance differences so that you know which kind is appropriate for your application.
+
+Write a function which takes a collection and returns one of :map, :set, :list, or :vector - describing the type of collection it was given.
+You won't be allowed to inspect their class or use the built-in predicates like list? - the point is to poke at them and understand their behavior.
+
+Special Restrictions
+class
+type
+Class
+vector?
+sequential?
+list?
+seq?
+map?
+set?
+instance?
+getClass"
+(defn black-box [c]
+  (let [poked (conj (empty c) [:a 1] [:a 1] [:b 2])]
+    (if (= (count poked) 2)
+      (if (= (:b poked) 2) :map :set)
+      (if (= (first poked) '(:b 2)) :list :vector))))
+(assert (= :map (black-box {:a 1, :b 2})))
+(assert (= :list (black-box (range (rand-int 20)))))
+(assert (= :vector (black-box [1 2 3 4 5 6])))
+(assert (= :set (black-box #{10 (rand-int 5)})))
+(assert (= [:map :set :vector :list] (map black-box [{} #{} [] ()])))
