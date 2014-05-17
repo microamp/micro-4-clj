@@ -196,13 +196,11 @@ dicate x) where x is an item in the collection."
 "Pack a Sequence"
 "Write a function which packs consecutive duplicates into sub-lists."
 (defn pack [c]
-  (reduce (fn [c item]
-            (if (= (-> c last last) item)
-              (conj (vec (butlast c))
-                    (conj (last c) item))
-              (conj c [item])))
-          [[(first c)]]
-          (rest c)))
+  (let [diffs (filter #(not (= (get c %)
+                               (get c (dec %))))
+                      (range 1 (count c)))]
+    (map (fn [[start end]] (subvec c start end))
+         (partition 2 1 (concat [0] diffs [(count c)])))))
 (assert (= (pack [1 1 2 1 1 1 3 3]) '((1 1) (2) (1 1 1) (3 3))))
 (assert (= (pack [:a :a :b :b :c]) '((:a :a) (:b :b) (:c))))
 (assert (= (pack [[1 2] [1 2] [3 4]]) '(([1 2] [1 2]) ([3 4]))))
