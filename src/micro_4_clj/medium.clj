@@ -444,3 +444,29 @@ Your function should accept an initial sequence of numbers, and return an infini
 (assert (= [3 1 2 4] (first (pronunciations [1 1 1 4 4]))))
 (assert (= [1 1 1 3 2 1 3 2 1 1] (nth (pronunciations [1]) 6)))
 (assert (= 338 (count (nth (pronunciations [3 2]) 15))))
+
+"Decurry"
+"Write a function that accepts a curried function of unknown arity n. Return an equivalent function of n arguments.
+
+You may wish to read this."
+(defn decurry [curried]
+  (fn [& values]
+    (reduce (fn [f v] (f v))
+            (partial curried)
+            values)))
+(assert (= 10 ((decurry (fn [a]
+                          (fn [b]
+                            (fn [c]
+                              (fn [d]
+                                (+ a b c d))))))
+               1 2 3 4)))
+(assert (= 24 ((decurry (fn [a]
+                          (fn [b]
+                            (fn [c]
+                              (fn [d]
+                                (* a b c d))))))
+               1 2 3 4)))
+(assert (= 25 ((decurry (fn [a]
+                          (fn [b]
+                            (* a b))))
+               5 5)))
