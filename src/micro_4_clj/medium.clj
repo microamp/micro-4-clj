@@ -470,3 +470,21 @@ You may wish to read this."
                           (fn [b]
                             (* a b))))
                5 5)))
+
+"Euler's Totient Function"
+"Two numbers are coprime if their greatest common divisor equals 1. Euler's totient function f (x) is defined as the number of positive integers less than x which are coprime to x. The special case f (1) equals 1. Write a function which calculates Euler's totient function."
+(defn gcd [x y]
+  (let [[lower higher] (if (> x y) [y x] [x y])]
+    (first (filter #(zero? (mod higher %))
+                   (filter #(zero? (mod lower %))
+                           (iterate dec lower))))))
+(defn totient [x]
+  (if (= x 1)
+    1
+    (count (filter #(= % 1)
+                   (map #(gcd % x)
+                        (range 1 x))))))
+(assert (= (totient 1) 1))
+(assert (= (totient 10) (count '(1 3 7 9)) 4))
+(assert (= (totient 40) 16))
+(assert (= (totient 99) 60))
