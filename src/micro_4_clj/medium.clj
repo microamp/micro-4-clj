@@ -488,3 +488,19 @@ You may wish to read this."
 (assert (= (totient 10) (count '(1 3 7 9)) 4))
 (assert (= (totient 40) 16))
 (assert (= (totient 99) 60))
+
+"Lazy Searching"
+"Given any number of sequences, each sorted from smallest to largest, find the smallest single number which appears in all of the sequences. The sequences may be infinite, so be careful to search lazily."
+(defn lazy-search [& seqs]
+  (let [first-items (map first seqs)]
+    (if (apply = first-items)
+      (first first-items)
+      (let [smallest (apply min first-items)]
+        (apply lazy-search (map (fn [s] (if (= (first s) smallest) (rest s) s))
+                                seqs))))))
+(assert (= 3 (lazy-search [3 4 5])))
+(assert (= 4 (lazy-search [1 2 3 4 5 6 7] [0.5 3/2 4 19])))
+(assert (= 7 (lazy-search (range) (range 0 100 7/6) [2 3 5 7 11 13])))
+(assert (= 64 (lazy-search (map #(* % % %) (range)) ;; perfect cubes
+                           (filter #(zero? (bit-and % (dec %))) (range)) ;; powers of 2
+                           (iterate inc 20)))) ;; at least as large as 20
