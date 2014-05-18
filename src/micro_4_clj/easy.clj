@@ -253,10 +253,10 @@ dicate x) where x is an item in the collection."
 "Greatest Common Divisor"
 "Given two integers, write a function which returns the greatest common divisor."
 (defn gcd [x y]
-  (loop [div (min x y)]
-    (if (and (zero? (mod x div)) (zero? (mod y div)))
-      div
-      (recur (dec div)))))
+  (let [[lower higher] (if (> x y) [y x] [x y])]
+    (first (filter #(zero? (mod higher %))
+                   (filter #(zero? (mod lower %))
+                           (iterate dec lower))))))
 (assert (= (gcd 2 4) 2))
 (assert (= (gcd 10 5) 5))
 (assert (= (gcd 5 7) 1))
