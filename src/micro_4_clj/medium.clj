@@ -504,3 +504,33 @@ You may wish to read this."
 (assert (= 64 (lazy-search (map #(* % % %) (range)) ;; perfect cubes
                            (filter #(zero? (bit-and % (dec %))) (range)) ;; powers of 2
                            (iterate inc 20)))) ;; at least as large as 20
+
+"Intro to Trampoline"
+"The trampoline function takes a function f and a variable number of parameters. Trampoline calls f with any parameters that were supplied. If f returns a function, trampoline calls that function with no arguments. This is repeated, until the return value is not a function, and then trampoline returns that non-function value. This is useful for implementing mutually recursive algorithms in a way that won't consume the stack."
+(assert (= [1 3 5 7 9 11]
+           (letfn
+               [(foo [x y] #(bar (conj x y) y))
+                (bar [x y] (if (> (last x) 10)
+                             x
+                             #(foo x (+ 2 y))))]
+             (trampoline foo [] 1))))
+
+"Reimplement Trampoline"
+"Reimplement the function described in \"Intro to Trampoline\".
+
+Special Restrictions
+trampoline
+"
+(defn my-trampoline [func & args]
+  (first (drop-while #(fn? %)
+                     (iterate #(%)
+                              (apply func args)))))
+(assert (= (letfn [(triple [x] #(sub-two (* 3 x)))
+                   (sub-two [x] #(stop? (- x 2)))
+                   (stop? [x] (if (> x 50) x #(triple x)))]
+             (my-trampoline triple 2))
+           82))
+(assert (= (letfn [(my-even? [x] (if (zero? x) true #(my-odd? (dec x))))
+                   (my-odd? [x] (if (zero? x) false #(my-even? (dec x))))]
+             (map (partial my-trampoline my-even?) (range 6)))
+           [true false true false true false]))
