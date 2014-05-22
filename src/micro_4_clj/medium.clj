@@ -538,19 +538,32 @@ trampoline
 "Power Set"
 "Write a function which generates the power set of a given set. The power set of a set x is the set of all subsets of x, including the empty set and x itself."
 (defn power-set [superset]
-  (apply
-   clojure.set/union
-   (take (inc (count superset))
-         (iterate
-          (fn [sets]
-            (set
-             (mapcat (fn [s] (map #(disj s %)
-                                 s))
-                     sets)))
-          #{superset}))))
-
+  (apply clojure.set/union
+         (take (inc (count superset))
+               (iterate (fn [sets] (set (mapcat (fn [s] (map #(disj s %)
+                                                           s))
+                                               sets)))
+                        #{superset}))))
 (assert (= (power-set #{1 :a}) #{#{1 :a} #{:a} #{} #{1}}))
 (assert (= (power-set #{}) #{#{}}))
 (assert (= (power-set #{1 2 3})
            #{#{} #{1} #{2} #{3} #{1 2} #{1 3} #{2 3} #{1 2 3}}))
 (assert (= (count (power-set (into #{} (range 10)))) 1024))
+
+"The Balance of N"
+"A balanced number is one whose component digits have the same sum on the left and right halves of the number. Write a function which accepts an integer n, and returns true iff n is balanced."
+(defn n-balanced? [n]
+  (let [s (str n)]
+    (let [half-len (int (/ (count s) 2))]
+      (letfn [(sum [chars] (reduce + (map #(-> % str Integer.) chars)))]
+        (= (sum (take half-len s))
+           (sum (take half-len (reverse s))))))))
+(assert (= true (n-balanced? 11)))
+(assert (= true (n-balanced? 121)))
+(assert (= false (n-balanced? 123)))
+(assert (= true (n-balanced? 0)))
+(assert (= false (n-balanced? 88099)))
+(assert (= true (n-balanced? 89098)))
+(assert (= true (n-balanced? 89089)))
+(assert (= (take 20 (filter n-balanced? (range)))
+           [0 1 2 3 4 5 6 7 8 9 11 22 33 44 55 66 77 88 99 101]))
