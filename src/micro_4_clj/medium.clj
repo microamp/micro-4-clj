@@ -534,3 +534,23 @@ trampoline
                    (my-odd? [x] (if (zero? x) false #(my-even? (dec x))))]
              (map (partial my-trampoline my-even?) (range 6)))
            [true false true false true false]))
+
+"Power Set"
+"Write a function which generates the power set of a given set. The power set of a set x is the set of all subsets of x, including the empty set and x itself."
+(defn power-set [superset]
+  (apply
+   clojure.set/union
+   (take (inc (count superset))
+         (iterate
+          (fn [sets]
+            (set
+             (mapcat (fn [s] (map #(disj s %)
+                                 s))
+                     sets)))
+          #{superset}))))
+
+(assert (= (power-set #{1 :a}) #{#{1 :a} #{:a} #{} #{1}}))
+(assert (= (power-set #{}) #{#{}}))
+(assert (= (power-set #{1 2 3})
+           #{#{} #{1} #{2} #{3} #{1 2} #{1 3} #{2 3} #{1 2 3}}))
+(assert (= (count (power-set (into #{} (range 10)))) 1024))
