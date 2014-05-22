@@ -567,3 +567,19 @@ trampoline
 (assert (= true (n-balanced? 89089)))
 (assert (= (take 20 (filter n-balanced? (range)))
            [0 1 2 3 4 5 6 7 8 9 11 22 33 44 55 66 77 88 99 101]))
+
+"Digits and bases"
+"Write a function which returns a sequence of digits of a non-negative number (first argument) in numerical system with an arbitrary base (second argument). Digits should be represented with their integer values, e.g. 15 would be [1 5] in base 10, [1 1 1 1] in base 2 and [15] in base 16."
+(defn dnb [digit base]
+  (if (< digit base)
+    [0]
+    (reverse
+     (map second
+          (take-while (fn [[d r]] (not (= d r 0)))
+                      (iterate (fn [[d _]] [(int (/ d base)) (mod d base)])
+                               [(int (/ digit base)) (mod digit base)]))))))
+(assert (= [1 2 3 4 5 0 1] (dnb 1234501 10)))
+(assert (= [0] (dnb 0 11)))
+(assert (= [1 0 0 1] (dnb 9 2)))
+(assert (= [1 0] (let [n (rand-int 100000)] (dnb n n))))
+(assert (= [16 18 5 24 15 1] (dnb Integer/MAX_VALUE 42)))
