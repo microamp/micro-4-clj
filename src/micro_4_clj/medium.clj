@@ -583,3 +583,27 @@ trampoline
 (assert (= [1 0 0 1] (dnb 9 2)))
 (assert (= [1 0] (let [n (rand-int 100000)] (dnb n n))))
 (assert (= [16 18 5 24 15 1] (dnb Integer/MAX_VALUE 42)))
+
+"The Big Divide"
+"Write a function which calculates the sum of all natural numbers under n (first argument) which are evenly divisible by at least one of a and b (second and third argument). Numbers a and b are guaranteed to be coprimes.
+
+Note: Some test cases have a very large n, so the most obvious solution will exceed the time limit."
+(defn big-divide [n a b]
+  "Note: Sum from 1 to n = (/ (* n (+ n 1)) 2)"
+  (letfn [(sum [x]
+            (let [nn (if (zero? (mod n x))
+                       (dec (quot n x))
+                       (quot n x))]
+              (*' (/ (*' nn (inc nn)) 2) x)))]
+    (-' (+' (sum a) (sum b))
+        (sum (*' a b)))))
+(assert (= 0 (big-divide 3 17 11)))
+(assert (= 23 (big-divide 10 3 5)))
+(assert (= 233168 (big-divide 1000 3 5)))
+(assert (= "2333333316666668" (str (big-divide 100000000 3 5))))
+(assert (= "110389610389889610389610"
+           (str (big-divide (* 10000 10000 10000) 7 11))))
+(assert (= "1277732511922987429116"
+           (str (big-divide (* 10000 10000 10000) 757 809))))
+(assert (= "4530161696788274281"
+           (str (big-divide (* 10000 10000 1000) 1597 3571))))
