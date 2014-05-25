@@ -607,3 +607,20 @@ Note: Some test cases have a very large n, so the most obvious solution will exc
            (str (big-divide (* 10000 10000 10000) 757 809))))
 (assert (= "4530161696788274281"
            (str (big-divide (* 10000 10000 1000) 1597 3571))))
+
+"Prime Sandwich"
+"A balanced prime is a prime number which is also the mean of the primes directly before and after it in the sequence of valid primes. Create a function which takes an integer n, and returns true if it is a balanced prime."
+(defn balanced-prime? [n]
+  (letfn [(prime? [x] (and (> n 1)
+                           (nil? (some #(zero? (mod x %))
+                                       (range 2 (-> (Math/sqrt x) int inc))))))
+          (primes [] (filter prime? (iterate inc 2)))]
+    (and (prime? n)
+         (not (= (first (primes)) n))
+         (let [sandwiches (partition 3 1 (primes))]
+           (let [[a b c] (first (filter (fn [[_ b _]] (= b n))
+                                        sandwiches))]
+             (= (/ (+ a c) 2) b))))))
+(assert (= false (balanced-prime? 4)))
+(assert (= true (balanced-prime? 563)))
+(assert (= 1103 (nth (filter balanced-prime? (range)) 15)))
