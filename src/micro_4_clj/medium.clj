@@ -286,20 +286,14 @@
 (defn intervals [c]
   (if (empty? c)
     []
-    (map (fn [v] [(first v) (last v)])
-         (let [sorted (-> c set sort)]
-           (reduce
-            (fn [v n]
-              (let [but-last (butlast v)
-                    last-v (last v)
-                    last-n (-> v last last)]
-                (if (= (inc last-n) n)
-                  (if (empty? but-last)
-                    [(conj last-v n)]
-                    (conj (vec but-last) (conj last-v n)))
-                  (conj v [n]))))
-            [[(first sorted)]]
-            (rest sorted))))))
+    (let [sorted (-> c set sort)]
+      (reduce (fn [v item]
+                (let [last-v (last v)]
+                  (if (= (-> last-v second inc) item)
+                    (assoc v (dec (count v)) [(first last-v) item])
+                    (conj v [item item]))))
+              [(vec (repeat 2 (first sorted)))]
+              (rest sorted)))))
 (assert (= (intervals [1 2 3]) [[1 3]]))
 (assert (= (intervals [10 9 8 1 2 3]) [[1 3] [8 10]]))
 (assert (= (intervals [1 1 1 1 1 1 1]) [[1 1]]))
