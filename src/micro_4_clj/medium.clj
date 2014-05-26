@@ -611,16 +611,15 @@ Note: Some test cases have a very large n, so the most obvious solution will exc
 "Prime Sandwich"
 "A balanced prime is a prime number which is also the mean of the primes directly before and after it in the sequence of valid primes. Create a function which takes an integer n, and returns true if it is a balanced prime."
 (defn balanced-prime? [n]
-  (letfn [(prime? [x] (and (> n 1)
-                           (nil? (some #(zero? (mod x %))
-                                       (range 2 (-> (Math/sqrt x) int inc))))))
+  (letfn [(prime? [n] (not-any? #(zero? (mod n %))
+                                (range 2 (-> (Math/sqrt n) int inc))))
           (primes [] (filter prime? (iterate inc 2)))]
-    (and (prime? n)
-         (not (= (first (primes)) n))
-         (let [sandwiches (partition 3 1 (primes))]
-           (let [[a b c] (first (filter (fn [[_ b _]] (= b n))
-                                        sandwiches))]
-             (= (/ (+ a c) 2) b))))))
+    (and (>= n 5)
+         (prime? n)
+         (let [[a b c] (first (filter (fn [[_ b _]] (= b n))
+                                      (partition 3 1 (primes))))]
+           (= b (/ (+ a c) 2))))))
+
 (assert (= false (balanced-prime? 4)))
 (assert (= true (balanced-prime? 563)))
 (assert (= 1103 (nth (filter balanced-prime? (range)) 15)))
