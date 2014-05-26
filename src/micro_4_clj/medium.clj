@@ -73,13 +73,10 @@
 "When working with java, you often need to create an object with fieldsLikeThis, but you'd rather work with a hashmap that has :keys-like-this until it's time to convert. Write a function which takes lower-case hyphen-separated strings and converts them to camel-case strings."
 (defn camel-case [s]
   (let [splitted (clojure.string/split s #"\-")]
-    (if (= (count splitted) 1)
-      (first splitted)
-      (str (first splitted)
-           (apply str (map #(reduce (fn [a b] (str a b))
-                                    (-> (first %) str .toUpperCase)
-                                    (rest %))
-                           (rest splitted)))))))
+    (apply str (cons (first splitted)
+                     (map #(apply str (cons (-> (first %) str .toUpperCase)
+                                            (rest %)))
+                          (rest splitted))))))
 (assert (= (camel-case "something") "something"))
 (assert (= (camel-case "multi-word-key") "multiWordKey"))
 (assert (= (camel-case "leaveMeAlone") "leaveMeAlone"))
@@ -619,7 +616,6 @@ Note: Some test cases have a very large n, so the most obvious solution will exc
          (let [[a b c] (first (filter (fn [[_ b _]] (= b n))
                                       (partition 3 1 (primes))))]
            (= b (/ (+ a c) 2))))))
-
 (assert (= false (balanced-prime? 4)))
 (assert (= true (balanced-prime? 563)))
 (assert (= 1103 (nth (filter balanced-prime? (range)) 15)))
