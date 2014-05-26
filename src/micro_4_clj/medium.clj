@@ -344,13 +344,12 @@
 "Prime Numbers"
 "Write a function which returns the first x number of prime numbers."
 (defn primes [n]
-  (last (take n (iterate
-                 (fn [dividers]
-                   (let [d (first (filter (fn [x] (not-any? #(zero? (mod x %))
-                                                           dividers))
-                                          (drop (last dividers) (range))))]
-                     (conj dividers d)))
-                 [2]))))
+  (letfn [(filtered [coll]
+            (cons (first coll)
+                  (lazy-seq
+                   (filtered (filter #(not (zero? (mod % (first coll))))
+                                     (rest coll))))))]
+    (take n (filtered (iterate inc 2)))))
 (assert (= (primes 2) [2 3]))
 (assert (= (primes 5) [2 3 5 7 11]))
 (assert (= (last (primes 100)) 541))
