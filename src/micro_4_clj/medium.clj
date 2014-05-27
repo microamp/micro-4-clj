@@ -178,9 +178,8 @@
 "Merge with a Function"
 "Write a function which takes a function f and a variable number of maps. Your function should return a map that consists of the rest of the maps conj-ed onto the first. If a key occurs in more than one map, the mapping (s) from the latter (left-to-right) should be combined with the mapping in the result by calling (f val-in-result val-in-latter)"
 (defn my-merge-with [f & hmaps]
-  (into {} (map (fn [[k v]] [k (reduce f v)])
-                (map (fn [[k vecs]] [k (map (fn [v] (get v 1)) vecs)])
-                     (group-by (fn [[k v]] k) (apply concat hmaps))))))
+  (into {} (map (fn [[k vecs]] [k (reduce f (map second vecs))])
+                (group-by first (apply concat hmaps)))))
 (assert (= (my-merge-with * {:a 2, :b 3, :c 4} {:a 2} {:b 2} {:c 5})
            {:a 4, :b 6, :c 20}))
 (assert (= (my-merge-with - {1 10, 2 20} {1 3, 2 10, 3 15})
