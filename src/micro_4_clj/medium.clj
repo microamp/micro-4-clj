@@ -58,11 +58,12 @@
 "Write a function which behaves like reduce, but returns each intermediate value of the reduction. Your function must accept either two or three arguments, and the return sequence must be lazy."
 (defn my-reductions
   ([func coll]
-     (map (fn [n] (reduce func (take n coll))) (rest (range))))
-  ([func first-item coll]
-     (let [c (cons first-item coll)]
-       (take (count c)
-             (map (fn [n] (reduce func (take n c))) (rest (range)))))))
+     (my-reductions func (first coll) (rest coll)))
+  ([func init coll]
+     (cons init (lazy-seq (when (not (empty? coll))
+                            (my-reductions func
+                                           (func init (first coll))
+                                           (rest coll)))))))
 (assert (= (take 5 (my-reductions + (range))) [0 1 3 6 10]))
 (assert (= (my-reductions conj [1] [2 3 4]) [[1] [1 2] [1 2 3] [1 2 3 4]]))
 (assert (= (last (my-reductions * 2 [3 4 5])) (reduce * 2 [3 4 5]) 120))
@@ -620,9 +621,9 @@ Note: Some test cases have a very large n, so the most obvious solution will exc
       (pf (cons (first fst) (if (empty? (rest fst))
                               rst
                               (cons (rest fst) rst)))))))
-(= (pf [["Do"] ["Nothing"]])
-   [["Do"] ["Nothing"]])
-(= (pf [[[[:a :b]]] [[:c :d]] [:e :f]])
-   [[:a :b] [:c :d] [:e :f]])
-(= (pf '((1 2) ((3 4) ((((5 6)))))))
-   '((1 2) (3 4) (5 6)))
+(assert (= (pf [["Do"] ["Nothing"]])
+           [["Do"] ["Nothing"]]))
+(assert (= (pf [[[[:a :b]]] [[:c :d]] [:e :f]])
+           [[:a :b] [:c :d] [:e :f]]))
+(assert (= (pf '((1 2) ((3 4) ((((5 6)))))))
+           '((1 2) (3 4) (5 6))))
