@@ -437,18 +437,18 @@ Write a function which returns the nth row of Pascal's Triangle."
 (defn btree? [coll]
   (if (nil? coll)
     true
-    (if (not (or (list? coll) (vector? coll)))
+    (if (not (sequential? coll))
       false
       (let [root (first coll) children (rest coll)]
         (if (or (nil? root) (not (= (count children) 2)))
           false
-          (and (recur (first children))
-               (recur (second children))))))))
+          (and (btree? (first children))
+               (btree? (second children))))))))
 (assert (= (btree? '(:a (:b nil nil) nil))
            true))
 (assert (= (btree? '(:a (:b nil nil)))
            false))
-n(assert (= (btree? [1 nil [2 [3 nil nil] [4 nil nil]]])
+(assert (= (btree? [1 nil [2 [3 nil nil] [4 nil nil]]])
            true))
 (assert (= (btree? [1 [2 nil nil] [3 nil nil] [4 nil nil]])
            false))
@@ -472,22 +472,21 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
         rank (last repr)]
     {:suit (get suits suit)
      :rank (or (get ranks rank) (- (-> rank str Integer/parseInt int) 2))}))
-(= {:suit :diamond :rank 10} (card "DQ"))
-(= {:suit :heart :rank 3} (card "H5"))
-(= {:suit :club :rank 12} (card "CA"))
-(= (range 13) (map (comp :rank card str)
-                   '[S2 S3 S4 S5 S6 S7
-                     S8 S9 ST SJ SQ SK SA]))
+(assert (= {:suit :diamond :rank 10} (card "DQ")))
+(assert (= {:suit :heart :rank 3} (card "H5")))
+(assert (= {:suit :club :rank 12} (card "CA")))
+(assert (= (range 13) (map (comp :rank card str)
+                           '[S2 S3 S4 S5 S6 S7
+                             S8 S9 ST SJ SQ SK SA])))
 
 "Least Common Multiple"
 "Write a function which calculates the least common multiple. Your function should accept a variable number of positive integers or ratios."
 (defn lcm [& nums]
-  (loop [mults (apply merge (map (fn [k] {k k}) nums))]
-    (let [values (vals mults)]
-      (if (apply = values)
-        (first values)
-        (let [[k v] (apply min-key (fn [[k v]] v) mults)]
-          (recur (assoc mults k (+ v k))))))))
+  (letfn [(first-divisible [n1 n2]
+            (let [mx (max n1 n2) mn (min n1 n2)]
+              (first (filter #(zero? (mod % mn))
+                             (iterate #(+ % mx) mx)))))]
+    (reduce first-divisible nums)))
 (assert (== (lcm 2 3) 6))
 (assert (== (lcm 5 3 7) 105))
 (assert (== (lcm 1/3 2/5) 2))
@@ -619,7 +618,7 @@ For this problem, your goal is to \"flatten\" a map of hashmaps. Each key in you
 "Flatten a Sequence"
 "Write a function which flattens a sequence."
 (defn my-flatten [coll]
-  (reduce (fn [a b] (if (or (list? b) (vector? b))
+  (reduce (fn [a b] (if (sequential? b)
                      (concat a (my-flatten b))
                      (concat a [b])))
           []
