@@ -199,12 +199,12 @@
 
 "Insert between two items"
 "Write a function that takes a two-argument predicate, a value, and a collection; and returns a new collection where the value is inserted between every two items that satisfy the predicate."
-(defn ibti [p1 p2 coll]
-  (filter identity
+(defn ibti [p v coll]
+  (filter #(not (nil? %))
           (interleave coll
-                      (concat (map (fn [[a b]] (if (p1 a b) p2))
+                      (concat (map (fn [[a b]] (if (p a b) v))
                                    (partition 2 1 coll))
-                              (repeat nil)))))
+                              '(nil)))))
 (assert (= '(1 :less 6 :less 7 4 3) (ibti < :less [1 6 7 4 3])))
 (assert (= '(2) (ibti > :more [2])))
 (assert (= [0 1 :x 2 :x 3 :x 4]  (ibti #(and (pos? %) (< % %2)) :x (range 5))))
@@ -609,3 +609,20 @@ Note: Some test cases have a very large n, so the most obvious solution will exc
 (assert (= false (balanced-prime? 4)))
 (assert (= true (balanced-prime? 563)))
 (assert (= 1103 (nth (filter balanced-prime? (range)) 15)))
+
+"Partially Flatten a Sequence"
+"Write a function which flattens any nested combination of sequential things (lists, vectors, etc.), but maintains the lowest level sequential items. The result should be a sequence of sequences with only one level of nesting."
+(defn pf [c]
+  (let [fst (first c) rst (rest c)]
+    (if (and (sequential? fst)
+             (every? #(not (sequential? %)) fst))
+      (cons fst (lazy-seq (when (not (empty? rst)) (pf rst))))
+      (pf (cons (first fst) (if (empty? (rest fst))
+                              rst
+                              (cons (rest fst) rst)))))))
+(= (pf [["Do"] ["Nothing"]])
+   [["Do"] ["Nothing"]])
+(= (pf [[[[:a :b]]] [[:c :d]] [:e :f]])
+   [[:a :b] [:c :d] [:e :f]])
+(= (pf '((1 2) ((3 4) ((((5 6)))))))
+   '((1 2) (3 4) (5 6)))
