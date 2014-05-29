@@ -234,7 +234,7 @@
 (defn fps [s]
   (apply str
    (interpose \,
-              (filter (fn [n] (let [sqrt (Math/sqrt (Integer/parseInt n))]
+              (filter (fn [n] (let [sqrt (Math/sqrt (Integer. n))]
                                (== sqrt (int sqrt))))
                       (clojure.string/split s #"\,")))))
 (assert (= (fps "4,5,6,7,8,9") "4,9"))
@@ -247,7 +247,7 @@
 (defn sum-of-squares [n]
   (reduce
    +
-   (map (fn [x] (square (-> x str Integer/parseInt)))
+   (map (fn [x] (square (-> x str Integer.)))
         (str n))))
 (defn happy-number? [n]
   (loop [x n nums []]

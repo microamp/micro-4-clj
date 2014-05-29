@@ -196,11 +196,11 @@ dicate x) where x is an item in the collection."
 "Pack a Sequence"
 "Write a function which packs consecutive duplicates into sub-lists."
 (defn pack [c]
-  (let [diffs (filter #(not (= (get c %)
-                               (get c (dec %))))
-                      (range 1 (count c)))]
-    (map (fn [[start end]] (subvec c start end))
-         (partition 2 1 (concat [0] diffs [(count c)])))))
+  (reduce (fn [v item] (if (= (-> v last last) item)
+                        (assoc v (dec (count v)) (conj (last v) item))
+                        (conj v [item])))
+          [[(first c)]]
+          (rest c)))
 (assert (= (pack [1 1 2 1 1 1 3 3]) '((1 1) (2) (1 1 1) (3 3))))
 (assert (= (pack [:a :a :b :b :c]) '((:a :a) (:b :b) (:c))))
 (assert (= (pack [[1 2] [1 2] [3 4]]) '(([1 2] [1 2]) ([3 4]))))
@@ -208,9 +208,8 @@ dicate x) where x is an item in the collection."
 "Drop Every Nth Item"
 "Write a function which drops every Nth item from a sequence."
 (defn drop-every-nth [coll n]
-  (map #(get coll %)
-       (filter #(not (zero? (mod (inc %) n)))
-               (range (count coll)))))
+  (mapcat #(take (dec n) %)
+          (partition-all n coll)))
 (assert (= (drop-every-nth [1 2 3 4 5 6 7 8] 3) [1 2 4 5 7 8]))
 (assert (= (drop-every-nth [:a :b :c :d :e :f] 2) [:a :c :e]))
 (assert (= (drop-every-nth [1 2 3 4 5 6] 4) [1 2 3 5 6]))
@@ -222,7 +221,7 @@ dicate x) where x is an item in the collection."
 "Split a sequence"
 "Write a function which will split a sequence into two parts."
 (defn my-split [n c]
-  [(take n c) (drop n c)])
+  (vector (take n c) (drop n c)))
 (assert (= (my-split 3 [1 2 3 4 5 6]) [[1 2 3] [4 5 6]]))
 (assert (= (my-split 1 [:a :b :c :d]) [[:a] [:b :c :d]]))
 (assert (= (my-split 2 [[1 2] [3 4] [5 6]]) [[[1 2] [3 4]] [[5 6]]]))
@@ -298,7 +297,7 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
 "Product Digits"
 "Write a function which multiplies two numbers and returns the result as a sequence of its digits."
 (defn prod-digits [a b]
-  (map #(-> % str Integer/parseInt)
+  (map #(-> % str Integer.)
        (str (* a b))))
 (assert (= (prod-digits 1 1) [1]))
 (assert (= (prod-digits 99 9) [8 9 1]))
@@ -422,7 +421,7 @@ Write a function which returns the nth row of Pascal's Triangle."
 (defn sum-squared-digits [nums]
   (count (filter (fn [n]
                    (let [squared (map #(* % %)
-                                      (map #(-> % str Integer/parseInt)
+                                      (map #(-> % str Integer.)
                                            (str n)))]
                      (< n (apply + squared))))
                  nums)))
@@ -471,7 +470,7 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
         suit (first repr)
         rank (last repr)]
     {:suit (get suits suit)
-     :rank (or (get ranks rank) (- (-> rank str Integer/parseInt int) 2))}))
+     :rank (or (get ranks rank) (- (-> rank str Integer. int) 2))}))
 (assert (= {:suit :diamond :rank 10} (card "DQ")))
 (assert (= {:suit :heart :rank 3} (card "H5")))
 (assert (= {:suit :club :rank 12} (card "CA")))
