@@ -37,3 +37,18 @@
 (assert (= nil (ttt [[:x :o :x]
                      [:x :o :x]
                      [:o :x :o]])))
+
+"Read Roman numerals"
+"Roman numerals are easy to recognize, but not everyone knows all the rules necessary to work with them. Write a function to parse a Roman-numeral string and return the number it represents.
+
+You can assume that the input will be well-formed, in upper-case, and follow the subtractive principle. You don't need to handle any numbers greater than MMMCMXCIX (3999), the largest number representable with ordinary letters."
+(defn roman-numerals [rn]
+  (let [symbols {\I 1 \V 5 \X 10 \L 50 \C 100 \D 500 \M 1000}]
+    (let [translated (map #(get symbols %) rn)]
+      (apply + (cons (last translated)
+                     (map (fn [[a b]] (if (>= a b) a (- a)))
+                          (partition 2 1 translated)))))))
+(assert (= 14 (roman-numerals "XIV")))
+(assert (= 827 (roman-numerals "DCCCXXVII")))
+(assert (= 3999 (roman-numerals "MMMCMXCIX")))
+(assert (= 48 (roman-numerals "XLVIII")))
