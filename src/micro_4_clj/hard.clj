@@ -52,3 +52,23 @@ You can assume that the input will be well-formed, in upper-case, and follow the
 (assert (= 827 (roman-numerals "DCCCXXVII")))
 (assert (= 3999 (roman-numerals "MMMCMXCIX")))
 (assert (= 48 (roman-numerals "XLVIII")))
+
+"Triangle Minimal Path"
+"Write a function which calculates the sum of the minimal path through a triangle. The triangle is represented as a collection of vectors. The path should start at the top of the triangle and move to an adjacent number on the next row until the bottom of the triangle is reached."
+(defn min-path [tri]
+  (first (reduce (fn [paths v]
+                   (map #(apply + %)
+                        (map vector (map #(apply min %)
+                                         (partition 2 1 paths)) v)))
+                 (last tri)
+                 (reverse (butlast tri)))))
+(assert (= 7 (min-path '([1]
+                         [2 4]
+                         [5 1 4]
+                         [2 3 4 5])))) ; 1->2->1->3
+(assert (= 20 (min-path '([3]
+                          [2 4]
+                          [1 9 3]
+                          [9 9 2 4]
+                          [4 6 6 7 8]
+                          [5 7 3 5 1 4])))) ; 3->4->3->2->7->1
