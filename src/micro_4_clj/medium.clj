@@ -627,3 +627,24 @@ Note: Some test cases have a very large n, so the most obvious solution will exc
            [[:a :b] [:c :d] [:e :f]]))
 (assert (= (pf '((1 2) ((3 4) ((((5 6)))))))
            '((1 2) (3 4) (5 6))))
+
+"Write Roman Numerals"
+"This is the inverse of Problem 92, but much easier. Given an integer smaller than 4000, return the corresponding roman numeral in uppercase, adhering to the subtractive principle."
+(defn roman-numerals [d]
+  (let [m {1 \I 5 \V 10 \X 50 \L 100 \C 500 \D 1000 \M}
+        seqs {\1 '(1) \2 '(1 1) \3 '(1 1 1) \4 '(1 5) \5 '(5)
+              \6 '(5 1) \7 '(5 1 1) \8 '(5 1 1 1) \9 '(1 10)}
+        strd (str d)]
+    (letfn [(digitify [s] (map #(* % (apply * (repeat (dec (count s)) 10)))
+                               (get seqs (first s))))]
+      (apply str (mapcat #(map (fn [digit] (get m digit)) %)
+                         (map digitify (filter #(not= (first %) \0)
+                                               (map #(drop % strd)
+                                                    (range (count (str d)))))))))))
+(assert (= "I" (roman-numerals 1)))
+(assert (= "XXX" (roman-numerals 30)))
+(assert (= "IV" (roman-numerals 4)))
+(assert (= "CXL" (roman-numerals 140)))
+(assert (= "DCCCXXVII" (roman-numerals 827)))
+(assert (= "MMMCMXCIX" (roman-numerals 3999)))
+(assert (= "XLVIII" (roman-numerals 48)))
