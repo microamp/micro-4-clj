@@ -84,22 +84,14 @@
 "Create a function which takes an integer and a nested collection of integers as arguments. Analyze the elements of the input collection and return a sequence which maintains the nested structure, and which includes all elements starting from the head whose sum is less than or equal to the input integer."
 (defn sequs-h
   ([limit coll]
-     (sequs-h limit coll [] 0))
-  ([limit coll result sum]
-     (if (empty? coll)
-       result
-       (let [first-item (first coll)]
-         (if (integer? first-item)
-           (let [after-sum (+ sum first-item)]
-             (if (> after-sum limit)
-               result
-               (sequs-h (- limit first-item)
-                        (rest coll)
-                        (conj result first-item)
-                        (+ sum first-item))))
-           (conj result
-                 (sequs-h limit
-                          first-item)))))))
+     (let [fst (first coll) rst (rest coll)]
+       (if (sequential? fst)
+         (list (lazy-seq (sequs-h limit fst)))
+         (if (neg? (- limit fst))
+           (list)
+           (cons fst
+                 (lazy-seq (when ((complement empty?) rst)
+                             (sequs-h (- limit fst) rst)))))))))
 (assert (=  (sequs-h 10 [1 2 [3 [4 5] 6] 7])
             '(1 2 (3 (4)))))
 (assert (=  (sequs-h 30 [1 2 [3 [4 [5 [6 [7 8]] 9]] 10] 11])
@@ -241,21 +233,17 @@
 
 "Happy numbers"
 "Happy numbers are positive integers that follow a particular formula: take each individual digit, square it, and then sum the squares to get a new number. Repeat with the new number and eventually, you might get to a number whose squared sum is 1. This is a happy number. An unhappy number (or sad number) is one that loops endlessly. Write a function that determines if a number is happy or not."
-(defn square [n]
-  (* n n))
-(defn sum-of-squares [n]
-  (reduce
-   +
-   (map (fn [x] (square (-> x str Integer.)))
-        (str n))))
 (defn happy-number? [n]
-  (loop [x n nums []]
-    (let [sum (sum-of-squares x)]
-      (if (= sum 1)
+  (letfn [(sum-of-squares [n]
+            (reduce + (map #(* % %)
+                           (map #(-> % str Integer.)
+                                (str n)))))]
+    (loop [nums #{} num n]
+      (if (= num 1)
         true
-        (if (some #(= % sum) nums)
+        (if (contains? nums num)
           false
-          (recur sum (conj nums sum)))))))
+          (recur (conj nums num) (sum-of-squares num)))))))
 (assert (= (happy-number? 7) true))
 (assert (= (happy-number? 986543210) true))
 (assert (= (happy-number? 2) false))
@@ -328,7 +316,7 @@
 "Perfect Numbers"
 "A number is \"perfect\" if the sum of its divisors equal the number itself. 6 is a perfect number because 1+2+3=6. Write a function which returns true for perfect numbers and false otherwise."
 (defn perfect? [n]
-  (let [divisors (filter #(= (mod n %) 0)
+  (let [divisors (filter #(zero? (mod n %))
                          (range 1 (-> n Math/sqrt int inc)))]
     (= n (apply + (butlast (sort (mapcat #(vector % (/ n %))
                                          divisors)))))))
