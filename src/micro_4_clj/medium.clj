@@ -127,18 +127,17 @@
 
 "Longest Increasing Sub-Seq"
 "Given a vector of integers, find the longest consecutive sub-sequence of increasing numbers. If two sub-sequences have the same length, use the one that occurs first. An increasing sub-sequence must have a length of 2 or greater to qualify."
-(defn liss [coll]
-  (loop [s (rest coll) longest [[]] current [(first coll)]]
-    (if (empty? s)
-      (let [result
-            (if (>= (count longest) (count current)) longest current)]
-        (if (>= (count result) 2) result []))
-      (let [item (first s) prev (last current)]
-        (if (> item prev)
-          (recur (rest s) longest (conj current item))
-          (recur (rest s)
-                 (if (>= (count longest) (count current)) longest current)
-                 [item]))))))
+(defn liss [c]
+  (let [longest (last
+                 (sort-by count
+                          (filter (fn [v] (> (count v) 1))
+                                  (reduce (fn [v item]
+                                            (if (= (-> v last last) (dec item))
+                                              (assoc v (dec (count v)) (conj (last v) item))
+                                              (conj v [item])))
+                                          [[(first c)]]
+                                          (rest c)))))]
+    (if (nil? longest) [] longest)))
 (assert (= (liss [1 0 1 2 3 0 4 5]) [0 1 2 3]))
 (assert (= (liss [5 6 1 3 2 7]) [5 6]))
 (assert (= (liss [2 3 3 4 5]) [3 4 5]))
@@ -418,16 +417,15 @@ Write a function which accepts an integer n, a predicate p, and a sequence. It s
 
 Your function should accept an initial sequence of numbers, and return an infinite lazy sequence of pronunciations, each element being a pronunciation of the previous element."
 (defn pronunciations [coll]
-  (let [pack (fn [c]
-               (let [diffs (filter #(not (= (get c %)
-                                            (get c (dec %))))
-                                   (range 1 (count c)))]
-                 (map (fn [[start end]] (subvec c start end))
-                      (partition 2 1 (concat [0] diffs [(count c)])))))]
-    (rest (iterate #(mapcat (fn [packed] [(count packed)
-                                         (first packed)])
-                            (pack (vec %)))
-                   coll))))
+  (letfn [(pack [c]
+            (mapcat #(vector (count %) (first %))
+                    (reduce (fn [v item]
+                              (if (= (-> v last last) item)
+                                (assoc v (dec (count v)) (conj (last v) item))
+                                (conj v (vector item))))
+                            [[(first c)]]
+                            (rest c))))]
+    (rest (iterate pack coll))))
 (assert (= [[1 1] [2 1] [1 2 1 1]] (take 3 (pronunciations [1]))))
 (assert (= [3 1 2 4] (first (pronunciations [1 1 1 4 4]))))
 (assert (= [1 1 1 3 2 1 3 2 1 1] (nth (pronunciations [1]) 6)))
