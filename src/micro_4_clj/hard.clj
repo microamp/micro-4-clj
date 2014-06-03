@@ -72,3 +72,35 @@ You can assume that the input will be well-formed, in upper-case, and follow the
                           [9 9 2 4]
                           [4 6 6 7 8]
                           [5 7 3 5 1 4])))) ; 3->4->3->2->7->1
+
+"Graph Connectivity"
+"Given a graph, determine whether the graph is connected. A connected graph is such that a path exists between any two given nodes.
+
+-Your function must return true if the graph is connected and false otherwise.
+-You will be given a set of tuples representing the edges of a graph. Each member of a tuple being a vertex/node in the graph.
+-Each edge is undirected (can be traversed either direction)."
+(defn connected? [graph]
+  ((complement empty?)
+   (apply
+    clojure.set/intersection
+    (reduce (fn [sets edge]
+              (let [seted (set edge)]
+                (if (every? empty? (map #(clojure.set/intersection % seted) sets))
+                  (conj sets seted)
+                  (set (map (fn [temp-set]
+                              (if (empty? (clojure.set/intersection temp-set seted))
+                                temp-set
+                                (clojure.set/union temp-set seted)))
+                            sets)))))
+            #{(set (first graph))}
+            (rest graph)))))
+(assert (= true (connected? #{[:a :a]})))
+(assert (= true (connected? #{[:a :b]})))
+(assert (= false (connected? #{[1 2] [2 3] [3 1]
+                               [4 5] [5 6] [6 4]})))
+(assert (= true (connected? #{[1 2] [2 3] [3 1]
+                              [4 5] [5 6] [6 4] [3 4]})))
+(assert (= false (connected? #{[:a :b] [:b :c] [:c :d]
+                               [:x :y] [:d :a] [:b :e]})))
+(assert (= true (connected? #{[:a :b] [:b :c] [:c :d]
+                              [:x :y] [:d :a] [:b :e] [:x :a]})))
