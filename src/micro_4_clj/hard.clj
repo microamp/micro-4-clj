@@ -104,3 +104,31 @@ You can assume that the input will be well-formed, in upper-case, and follow the
                                [:x :y] [:d :a] [:b :e]})))
 (assert (= true (connected? #{[:a :b] [:b :c] [:c :d]
                               [:x :y] [:d :a] [:b :e] [:x :a]})))
+
+"Number Maze"
+"Given a pair of numbers, the start and end point, find a path between the two using only three possible operations:
+
+double
+halve (odd numbers cannot be halved)
+add 2
+
+Find the shortest path through the \"maze\". Because there are multiple shortest paths, you must return the length of the shortest path, not the path itself."
+(defn maze [start end]
+  (let [funcs [(fn [x] (* x 2))
+               (fn [x] (if (even? x) (/ x 2)))
+               (fn [x] (+ x 2))]]
+    (inc
+     (count
+      (take-while (fn [nums] (not-any? #(= % end) nums))
+                  (iterate (fn [nums]
+                             (mapcat (fn [n] (filter (complement nil?)
+                                                    (map #(% n)
+                                                         funcs)))
+                                     nums))
+                           [start]))))))
+(assert (= 1 (maze 1 1))) ; 1
+(assert (= 3 (maze 3 12))) ; 3 6 12
+(assert (= 3 (maze 12 3))) ; 12 6 3
+(assert (= 3 (maze 5 9))) ; 5 7 9
+(assert (= 9 (maze 9 2))) ; 9 18 20 10 12 6 8 4 2
+(assert (= 5 (maze 9 12))) ; 9 11 22 24 12
