@@ -321,7 +321,7 @@ It can be hard to follow in the abstract, so let's build a simple closure. Given
 (defn my-group-by [f c]
   (reduce (fn [hm item]
             (let [evaled (f item)
-                  v (get hm evaled [])]
+                  v (hm evaled [])]
               (assoc hm evaled (conj v item))))
           {(f (first c)) [(first c)]}
           (rest c)))
@@ -469,8 +469,8 @@ Write a function which converts (for example) the string \"SJ\" into a map of {:
         ranks {\T 8 \J 9 \Q 10 \K 11 \A 12}
         suit (first repr)
         rank (last repr)]
-    {:suit (get suits suit)
-     :rank (or (get ranks rank) (- (-> rank str Integer. int) 2))}))
+    {:suit (suits suit)
+     :rank (or (ranks rank) (- (-> rank str Integer. int) 2))}))
 (assert (= {:suit :diamond :rank 10} (card "DQ")))
 (assert (= {:suit :heart :rank 3} (card "H5")))
 (assert (= {:suit :club :rank 12} (card "CA")))

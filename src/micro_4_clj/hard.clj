@@ -44,7 +44,7 @@
 You can assume that the input will be well-formed, in upper-case, and follow the subtractive principle. You don't need to handle any numbers greater than MMMCMXCIX (3999), the largest number representable with ordinary letters."
 (defn roman-numerals [rn]
   (let [symbols {\I 1 \V 5 \X 10 \L 50 \C 100 \D 500 \M 1000}]
-    (let [translated (map #(get symbols %) rn)]
+    (let [translated (map #(symbols %) rn)]
       (apply + (cons (last translated)
                      (map (fn [[a b]] (if (>= a b) a (- a)))
                           (partition 2 1 translated)))))))

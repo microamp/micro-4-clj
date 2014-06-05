@@ -295,7 +295,7 @@
      (reduce
       (fn [o item]
         (let [closing? (contains? matching item)]
-          (if (and closing? (= (last o) (get matching item)))
+          (if (and closing? (= (last o) (matching item)))
             (vec (butlast o))
             (conj o item))))
       []
@@ -622,8 +622,8 @@ Note: Some test cases have a very large n, so the most obvious solution will exc
               \6 '(5 1) \7 '(5 1 1) \8 '(5 1 1 1) \9 '(1 10)}
         strd (str d)]
     (letfn [(digitify [s] (map #(* % (apply * (repeat (dec (count s)) 10)))
-                               (get seqs (first s))))]
-      (apply str (mapcat #(map (fn [digit] (get m digit)) %)
+                               (seqs (first s))))]
+      (apply str (mapcat #(map (fn [digit] (m digit)) %)
                          (map digitify (filter #(not= (first %) \0)
                                                (map #(drop % strd)
                                                     (range (count (str d)))))))))))

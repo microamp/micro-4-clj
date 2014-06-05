@@ -164,7 +164,7 @@
 "Write a function which, given a key and map, returns true if the map contains an entry with that key and its value is nil."
 (defn x [key map]
   (and (contains? map key)
-       (nil? (get map key))))
+       (nil? (map key))))
 (assert (true?  (x :a {:a nil :b 2})))
 (assert (false? (x :b {:a nil :b 2})))
 (assert (false? (x :c {:a nil :b 2})))
