@@ -4,18 +4,18 @@
   (let [[[r1c1 r1c2 r1c3]
          [r2c1 r2c2 r2c3]
          [r3c1 r3c2 r3c3]] matrix]
-    (first
-     (first
-      (filter #(= (count %) 1)
-              (filter #(not (contains? % :e))
-                      (map set [[r1c1 r1c2 r1c3]
-                                [r2c1 r2c2 r2c3]
-                                [r3c1 r3c2 r3c3]
-                                [r1c1 r2c1 r3c1]
-                                [r1c2 r2c2 r3c2]
-                                [r1c3 r2c3 r3c3]
-                                [r1c1 r2c2 r3c3]
-                                [r1c3 r2c2 r3c1]])))))))
+    (first (first
+            (filter #(= (count %) 1)
+                    (filter #(not (contains? % :e))
+                            (map set [[r1c1 r1c2 r1c3]
+                                      [r2c1 r2c2 r2c3]
+                                      [r3c1 r3c2 r3c3]
+                                      [r1c1 r2c1 r3c1]
+                                      [r1c2 r2c2 r3c2]
+                                      [r1c3 r2c3 r3c3]
+                                      [r1c1 r2c2 r3c3]
+                                      [r1c3 r2c2 r3c1]])))))))
+
 (assert (= nil (ttt [[:e :e :e]
                      [:e :e :e]
                      [:e :e :e]])))
@@ -48,6 +48,7 @@ You can assume that the input will be well-formed, in upper-case, and follow the
       (apply + (cons (last translated)
                      (map (fn [[a b]] (if (>= a b) a (- a)))
                           (partition 2 1 translated)))))))
+
 (assert (= 14 (roman-numerals "XIV")))
 (assert (= 827 (roman-numerals "DCCCXXVII")))
 (assert (= 3999 (roman-numerals "MMMCMXCIX")))
@@ -62,6 +63,7 @@ You can assume that the input will be well-formed, in upper-case, and follow the
                                          (partition 2 1 paths)) v)))
                  (last tri)
                  (reverse (butlast tri)))))
+
 (assert (= 7 (min-path '([1]
                          [2 4]
                          [5 1 4]
@@ -94,6 +96,7 @@ You can assume that the input will be well-formed, in upper-case, and follow the
                             sets)))))
             #{(set (first graph))}
             (rest graph)))))
+
 (assert (= true (connected? #{[:a :a]})))
 (assert (= true (connected? #{[:a :b]})))
 (assert (= false (connected? #{[1 2] [2 3] [3 1]
@@ -117,18 +120,66 @@ Find the shortest path through the \"maze\". Because there are multiple shortest
   (let [funcs [(fn [x] (* x 2))
                (fn [x] (if (even? x) (/ x 2)))
                (fn [x] (+ x 2))]]
-    (inc
-     (count
-      (take-while (fn [nums] (not-any? #(= % end) nums))
-                  (iterate (fn [nums]
-                             (mapcat (fn [n] (filter (complement nil?)
-                                                    (map #(% n)
-                                                         funcs)))
-                                     nums))
-                           [start]))))))
+    (letfn [(apply-funcs [n]
+              (filter (complement nil?)
+                      (map #(% n) funcs)))]
+      (inc (count
+            (take-while (fn [nums] (not-any? #(= % end) nums))
+                        (iterate #(mapcat apply-funcs %)
+                                 [start])))))))
+
 (assert (= 1 (maze 1 1))) ; 1
 (assert (= 3 (maze 3 12))) ; 3 6 12
 (assert (= 3 (maze 12 3))) ; 12 6 3
 (assert (= 3 (maze 5 9))) ; 5 7 9
 (assert (= 9 (maze 9 2))) ; 9 18 20 10 12 6 8 4 2
 (assert (= 5 (maze 9 12))) ; 9 11 22 24 12
+
+"Word Chains"
+"A word chain consists of a set of words ordered so that each word differs by only one letter from the words directly before and after it. The one letter difference can be either an insertion, a deletion, or a substitution. Here is an example word chain:
+
+cat -> cot -> coat -> oat -> hat -> hot -> hog -> dog
+
+Write a function which takes a sequence of words, and returns true if they can be arranged into one continous word chain, and false if they cannot."
+(defn diff-by-one? [w1 w2]
+  (let [by-len (reverse (sort-by count [w1 w2]))]
+    (let [longer (first by-len) shorter (second by-len)]
+      (let [first-diff (.indexOf (map not= longer shorter) true)]
+        (case (- (count longer) (count shorter))
+          0 (and (not= first-diff -1)
+                 (= (drop (inc first-diff) longer)
+                    (drop (inc first-diff) shorter)))
+          1 (or (.contains longer shorter)
+                (= (drop (inc first-diff) longer)
+                   (drop first-diff shorter)))
+          false)))))
+
+(defn diffs [w words]
+  (filter #(diff-by-one? % w) (disj words w)))
+
+(defn chain [words]
+  (let [all-diffs (into {} (map (fn [w] [w (diffs w words)]) words))]
+    (let [w-least-diffs (map first (-> (group-by #(-> % val count) all-diffs)
+                                       sort
+                                       first
+                                       second))]
+      (= (apply max
+                (map count
+                     (last (take-while
+                            (complement empty?)
+                            (iterate
+                             (fn [seqs] (mapcat
+                                        (fn [s]
+                                          (filter #(apply distinct? %)
+                                                  (map #(cons % s)
+                                                       (all-diffs (first s)))))
+                                        seqs))
+                             (map list w-least-diffs))))))
+         (count words)))))
+
+(assert (= true (chain #{"hat" "coat" "dog" "cat" "oat" "cot" "hot" "hog"})))
+(assert (= false (chain #{"cot" "hot" "bat" "fat"})))
+(assert (= false (chain #{"to" "top" "stop" "tops" "toss"})))
+(assert (= true (chain #{"spout" "do" "pot" "pout" "spot" "dot"})))
+(assert (= true (chain #{"share" "hares" "shares" "hare" "are"})))
+(assert (= false (chain #{"share" "hares" "hare" "are"})))
